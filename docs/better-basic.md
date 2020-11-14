@@ -218,7 +218,7 @@ MyInterface .bb:
 ```
 export MyInterface1
 
-def comp
+def comp MyInterface1
     printHelloWorld() Void
     printWhatever(str input) Void
 end
