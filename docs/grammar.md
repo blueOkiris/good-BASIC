@@ -36,7 +36,7 @@ end
 Record types and composition types are as follows:
 
 ```
-let <custom-type-name> <ident> = data(<member1>, ...)
+let <custom-type-name> <ident> = data <custom-type-name> (<member1>, ...)
 ```
 
 If it's a composition type, not a record type, then an instance can be defined by assigning it to a module name: `let <comp-type> <ident> = <mod-name>`. It will throw an error of course if the module doesn't implement that interface.
@@ -174,5 +174,22 @@ Now to actually write up an ebnf grammar to follow while writing the parser
 <assignment>    ::= <ident> '=' <expr>
 <return>        ::= 'return' <expr>
 
-<expr>          ::= TBD | '(' <expr> ')'
+<expr>          ::= <term> { ('+' | '-') <term> }
+<term>          ::= <factor> { ( '*' | '/' ) | <factor> }
+<factor>        ::= <ident> | <int> | <float> | <string>
+                  | lambda | <comp-rec-dec>
+                  | <member-acc> | <func-call> | '(' <expr> ')'
+<member-acc>    ::= <ident> ':' ( <ident> | <member-acc> )
+<func-call>     ::= 'call' <ident> { <expr> }
+<lambda>        ::= 'lambda' '(' [ <type-arg-list> ] ')' <type-name> /\n+/
+                        { <statement> /\n+/ }
+                    'end'
+<comp-rec-dec>  ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
+
+<ident>         ::= /[A-Za-z_][A-Za-z0-9_]+/
+<float>         ::= /(.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+)/
+<int>           ::= /[0-9]+/
+<string>        ::= /'(\\.|[^\\'])*'/
 ```
+
+We'll see as I implement it if it's correct, but I think that's everything
