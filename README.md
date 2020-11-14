@@ -15,6 +15,8 @@ In [this other document](./docs/better-basic.md), I describe my process to desig
 
 The reasoning for these is somewhat explained in said document
 
+Another good reference is [the grammar document](./docs/grammar.md) which explains the parts of the language and ultimately creates an ebnf description of the language.
+
 ## Example
 
 I think the best way to understand why you might want a different language is to see the language in action. Here's an example that shows some of the features of the language.
