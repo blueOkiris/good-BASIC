@@ -149,8 +149,8 @@ Now to actually write up an ebnf grammar to follow while writing the parser
 <ident-list>    ::= <ident> { ',' <ident> }
 
 <definition>    ::= <func-def> | <comp-def> | <rec-def>
-<func-def>      ::= 'def' 'fn' <ident> '(' [ <type-arg-list> ] ')' <type-name>
-                    /\n+/
+<func-def>      ::= 'def' 'fn' <ident> '(' [ <type-arg-list> ] ')' 
+                    ( <type-name> | 'void' ) /\n+/
                         { <statement> /\n+/ } /\n+/
                     '<end>'
 <type-arg-list> ::= <type-name> <ident> { ',' <type-name> <ident> }
