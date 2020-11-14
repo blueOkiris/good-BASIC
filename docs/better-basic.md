@@ -220,7 +220,7 @@ export MyInterface1
 
 def comp MyInterface1
     printHelloWorld() Void
-    printWhatever(str input) Void
+    printWhatever(str) Void
 end
 ```
 

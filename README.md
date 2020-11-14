@@ -59,7 +59,8 @@ DEF Fn callPrints(MYINTERFACE1 interface)
 end
 
 def fn main([STR] args)
-    call callPrints Concrete
+    let MyInterface1 instance = Concrete
+    call callPrints instance
     let int two = call Concrete:extraFunc 2
     print call std:toStr two
 end
