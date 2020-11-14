@@ -87,7 +87,7 @@ int lambda_1(int x, int y) {
 int (*)(int, int) sum = lambda_1;
 ```
 
-Or something like that. This means everything is essentially passed by reference by passing its pointer by value, so how would one actually pass by value? Well, you don't. You should have data immutable, so passing by value wouldn't really solve anything. It's as if everything is C++'s `const &<type-name> <ident>`.
+Or something like that. This means everything is essentially passed by reference by passing its pointer by value, so how would one actually pass by value? Well, you don't. You should have data immutable, so passing by value wouldn't really solve anything. It's as if everything is C++'s `const &<type-name> <ident>`. It's safe to assume if you're taking a mutable as a parameter, then you intend to modify it, otherwise there really isn't a reason to anyway.
 
 The exception is return. Return will always get the value of the data. When using let to get the value of a function call, a new pointer will be created with the data copied from the old pointer.
 
