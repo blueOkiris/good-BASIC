@@ -89,6 +89,8 @@ int (*)(int, int) sum = lambda_1;
 
 Or something like that. This means everything is essentially passed by reference by passing its pointer by value, so how would one actually pass by value? Well, you don't. You should have data immutable, so passing by value wouldn't really solve anything. It's as if everything is C++'s `const &<type-name> <ident>`.
 
+The exception is return. Return will always get the value of the data. When using let to get the value of a function call, a new pointer will be created with the data copied from the old pointer.
+
 ## Statements and Control Flow
 
 Next. Function calls. `call` + function name + arguments. In order to wrap these within other expressions, naturally it can all be wrapped in parentheses: `( call <func-name> <arg1> ... )`
@@ -129,7 +131,7 @@ So of course, there's the module system and the starting lines
 
 First comes optional `IMPORTS` where you can import another module
 
-Next you have `EXPORTS` plus a comment delimited list of functions and an optional `IMPLEMENTS` plus a comment delimited list of interfaces.
+Next you have `EXPORTS` plus a comment delimited list of functions, compositions, or record types and an optional `IMPLEMENTS` plus a comment delimited list of interfaces.
 
 They must come in that order
 
@@ -137,5 +139,40 @@ They must come in that order
 
 Now to actually write up an ebnf grammar to follow while writing the parser
 
+```
+<module>        ::= { <import> } /\n+/
+                    <export> [ <implement> ] /\n+/
+                    { <definition> /\n+/ }
+<import>        ::= 'import' <ident>
+<export>        ::= 'exports' <ident-list>
+<implement>     ::= 'implements' <ident-list>
+<ident-list>    ::= <ident> { ',' <ident> }
 
+<definition>    ::= <func-def> | <comp-def> | <rec-def>
+<func-def>      ::= 'def' 'fn' <ident> '(' [ <type-arg-list> ] ')' <type-name>
+                    /\n+/
+                        { <statement> /\n+/ } /\n+/
+                    '<end>'
+<type-arg-list> ::= <type-name> <ident> { ',' <type-name> <ident> }
+<type-name>     ::= 'int' | 'float' | 'str'
+                  | 'fn' '(' [ <type-list> ] ')' <type-name>
+                  | '(' <type-name> ')'
+                  | '[' <type-name> ']'
+                  | <ident>
+                  | 'mut' <type-name>
+<type-list>     ::= <type-name> { ',' <type-name> }
+<comp-def>      ::= 'def' 'comp' <ident>  /\n+/
+                        { <type-name> <ident> /\n+/ }
+                    'end'
+<rec-def>       ::= 'def' 'rec' <ident> /\n+/
+                        { <ident> '(' [ <type-arg-list> ] ')' <type-name> /\n+/ }
+                    'end'
 
+<statement>     ::= <declaration> | <assignment> | <return> | <expr>
+                  | <statement> ';' <statement>
+<declaration>   ::= 'let' <type-name> <ident> [ '=' <expr> ]
+<assignment>    ::= <ident> '=' <expr>
+<return>        ::= 'return' <expr>
+
+<expr>          ::= TBD | '(' <expr> ')'
+```
