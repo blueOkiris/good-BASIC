@@ -187,8 +187,8 @@ Now to actually write up an ebnf grammar to follow while writing the parser
 <comp-rec-dec>  ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
 
 <ident>         ::= /[A-Za-z_][A-Za-z0-9_]+/
-<float>         ::= /(.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+)/
-<int>           ::= /[0-9]+/
+<float>         ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))/
+<int>           ::= /-?[0-9]+/
 <string>        ::= /'(\\.|[^\\'])*'/
 ```
 

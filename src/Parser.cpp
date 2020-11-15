@@ -50,8 +50,47 @@ const Parser parser::either(const Parser& parser1, const Parser& parser2) {
     };
 }
 
+// <int> ::= /-?[0-9]+/
 const Parser parser::integer = [](const std::string &input) {
     const auto negSymb = parse(character('-'), input);
     const auto natNum = parse(some(digit), negSymb.second);
     return ParseResult({ negSymb.first + natNum.first, natNum.second });
+};
+
+// <string> ::= /'(\\.|[^\\'])*'/
+const Parser parser::str = [](const std::string &input) {
+    std::stringstream parsedStr;
+
+    const auto quote = parse(character('\''), input);
+    if(quote.first == "") {
+        return ParseResult({ "", input });
+    }
+    parsedStr << quote.first;
+
+    auto currInput = quote.second;
+    while(currInput != "") {
+        const auto escape = parse(character('\\'), currInput);
+        if(escape.first != "") {
+            parsedStr << escape.first;
+            currInput = escape.second;
+            if(currInput == "") {
+                return ParseResult({ "", input });
+            }
+
+            parsedStr << currInput[0];
+            currInput = currInput.substr(1);
+            continue;
+        }
+        
+        const auto endQuote = parse(character('\''), currInput);
+        if(endQuote.first != "") {
+            parsedStr << endQuote.first;
+            currInput = endQuote.second;
+            return ParseResult({ parsedStr.str(), currInput });
+        }
+
+        parsedStr << currInput[0];
+        currInput = currInput.substr(1);
+    }
+    return ParseResult({ "", input });
 };
