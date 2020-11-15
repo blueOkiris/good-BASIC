@@ -38,10 +38,10 @@ namespace good_basic {
         Parser character(const char c);
         Parser anyCharExcept(const std::vector<char>& options);
 
+        extern const Parser factor;
+        extern const Parser ident;
+        extern const Parser decimal;
         extern const Parser integer;
         extern const Parser str;
-        extern const Parser decimal;
-        extern const Parser ident;
-        extern const Parser factor;
     }
 }
