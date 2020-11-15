@@ -29,6 +29,7 @@ namespace good_basic {
         Parser either(
             const Parser &parser1, const Parser& parser2
         );
+        Parser selectFrom(const std::vector<Parser>& steps);
         Parser doParsers(const std::vector<Parser>& steps);
 
         extern const Parser alpha;

@@ -9,22 +9,6 @@
 using namespace good_basic;
 using namespace parser;
 
-Parser parser::doParsers(const std::vector<Parser>& steps) {
-    return [steps](const std::string& input) {
-        auto currInput = input;
-        std::stringstream finalParse;
-        for(const auto& parserFunc : steps) {
-            const auto result = parse(parserFunc, currInput);
-            if(result.first == "") {
-                return ParseResult({ "", input });
-            }
-            finalParse << result.first;
-            currInput = result.second;
-        }
-        return ParseResult({ finalParse.str(), currInput });
-    };
-}
-
 const Parser parser::digit = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isDigit(input[0])) {
         return ParseResult({ "", input });
@@ -97,6 +81,34 @@ Parser parser::either(const Parser& parser1, const Parser& parser2) {
     };
 }
 
+Parser parser::selectFrom(const std::vector<Parser>& options) {
+    return [options](const std::string& input) {
+        for(const auto& option : options) {
+            const auto attempt = parse(option, input);
+            if(attempt.first != "") {
+                return attempt;
+            };
+        }
+        return ParseResult({ "", input });
+    };
+}
+
+Parser parser::doParsers(const std::vector<Parser>& steps) {
+    return [steps](const std::string& input) {
+        auto currInput = input;
+        std::stringstream finalParse;
+        for(const auto& parserFunc : steps) {
+            const auto result = parse(parserFunc, currInput);
+            if(result.first == "") {
+                return ParseResult({ "", input });
+            }
+            finalParse << result.first;
+            currInput = result.second;
+        }
+        return ParseResult({ finalParse.str(), currInput });
+    };
+}
+
 // <int> ::= /-?[0-9]+/
 const Parser parser::integer = [](const std::string &input) {
     return parse(
@@ -153,7 +165,7 @@ const Parser parser::decimal = [](const std::string &input) {
 // <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 const Parser parser::ident = [](const std::string &input) {
     const auto firstChar = either(alpha, character('_'));
-    const auto laterChars = either(either(alpha, character('_')), digit);
+    const auto laterChars = selectFrom({ alpha, character('_'), digit });
     return parse(
         either(
             doParsers({ firstChar, multiple(laterChars) }),
