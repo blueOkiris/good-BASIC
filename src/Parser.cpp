@@ -51,19 +51,7 @@ const Parser parser::either(const Parser& parser1, const Parser& parser2) {
 }
 
 const Parser parser::integer = [](const std::string &input) {
-    return parse(either(
-        [](const std::string& input) {
-            std::stringstream negativeNumber;
-            const auto negSymb = parse(character('-'), input);
-            if(negSymb.first == "") {
-                return ParseResult({ "", "" });
-            }
-            const auto natNum = parse(some(digit), negSymb.second);
-            if(natNum.first == "") {
-                return ParseResult({ "", "" });
-            }
-            negativeNumber << '-' << natNum.first;
-            return ParseResult({ negativeNumber.str(), natNum.second });
-        }, some(digit)
-    ), input);
+    const auto negSymb = parse(character('-'), input);
+    const auto natNum = parse(some(digit), negSymb.second);
+    return ParseResult({ negSymb.first + natNum.first, natNum.second });
 };
