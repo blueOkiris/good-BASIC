@@ -6,6 +6,7 @@ int main(int argc, char **args) {
     //tests::basicParseDigit();
     //tests::basicParseCharacter();
     //tests::parseMultiDigits();
-    tests::parseEither();
+    //tests::parseEither();
+    tests::parseInteger();
     return 0;
 }

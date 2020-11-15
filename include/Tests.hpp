@@ -64,5 +64,18 @@ namespace good_basic {
                     << std::endl;
             }
         }
+
+        inline void parseInteger() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse an integer from ('quit' to quit): ";
+                std::cin >> input;
+                const auto result = parser::parse(parser::integer, input);
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
     }
 }

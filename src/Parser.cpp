@@ -34,7 +34,6 @@ const Parser parser::some(const Parser& parserFunc) {
         while(result.first != "") {
             success << result.first;
             result = parse(parserFunc, result.second);
-            std::cout << result.first << ", " << result.second << std::endl;
         }
         return ParseResult({ success.str(), result.second });
     };
@@ -50,3 +49,21 @@ const Parser parser::either(const Parser& parser1, const Parser& parser2) {
         }
     };
 }
+
+const Parser parser::integer = [](const std::string &input) {
+    return parse(either(
+        [](const std::string& input) {
+            std::stringstream negativeNumber;
+            const auto negSymb = parse(character('-'), input);
+            if(negSymb.first == "") {
+                return ParseResult({ "", "" });
+            }
+            const auto natNum = parse(some(digit), negSymb.second);
+            if(natNum.first == "") {
+                return ParseResult({ "", "" });
+            }
+            negativeNumber << '-' << natNum.first;
+            return ParseResult({ negativeNumber.str(), natNum.second });
+        }, some(digit)
+    ), input);
+};

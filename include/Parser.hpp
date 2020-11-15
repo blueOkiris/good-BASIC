@@ -27,5 +27,7 @@ namespace good_basic {
         extern const Parser either(
             const Parser &parser1, const Parser& parser2
         );
+
+        extern const Parser integer;
     }
 }
