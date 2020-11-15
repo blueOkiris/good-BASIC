@@ -27,9 +27,10 @@ namespace good_basic {
         );
         Parser doParsers(const std::vector<Parser>& steps);
 
-        extern const Parser any;
         extern const Parser digit;
-        extern const Parser character(const char c);
+        extern const Parser anyChar;
+        Parser character(const char c);
+        Parser anyCharExcept(const std::vector<char>& options);
 
         extern const Parser integer;
         extern const Parser str;

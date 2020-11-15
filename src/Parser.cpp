@@ -33,7 +33,15 @@ const Parser parser::digit = [](const std::string& input) {
     }
 };
 
-const Parser parser::character(const char c) {
+const Parser parser::anyChar = [](const std::string& input) {
+    if(input.length() < 1) {
+        return ParseResult({ "", input });
+    } else {
+        return ParseResult({ input.substr(0, 1), input.substr(1) });
+    }
+};
+
+Parser parser::character(const char c) {
     return [c](const std::string& input) {
         if(input.length() < 1 || input[0] != c) {
             return ParseResult({ "", input });
@@ -43,13 +51,20 @@ const Parser parser::character(const char c) {
     };
 }
 
-const Parser parser::any = [](const std::string& input) {
-    if(input.length() < 1) {
-        return ParseResult({ "", input });
-    } else {
-        return ParseResult({ input.substr(0, 1), input.substr(1) });
-    }
-};
+Parser parser::anyCharExcept(const std::vector<char>& options) {
+    return [options](const std::string& input) {
+        if(input.length() < 1) {
+            return ParseResult({ "", input });
+        } else {
+            for(const char c : options) {
+                if(input[0] == c) {
+                    return ParseResult({ "", input });
+                }
+            }
+            return ParseResult({ input.substr(0, 1), input.substr(1) });
+        }
+    };
+}
 
 Parser parser::multiple(const Parser& parserFunc) {
     return [parserFunc](const std::string& input) {
@@ -86,38 +101,20 @@ const Parser parser::integer = [](const std::string &input) {
 
 // <string> ::= /'(\\.|[^\\'])*'/
 const Parser parser::str = [](const std::string &input) {
-    std::stringstream parsedStr;
-
-    const auto quote = parse(character('\''), input);
-    if(quote.first == "") {
-        return ParseResult({ "", input });
-    }
-    parsedStr << quote.first;
-
-    auto currInput = quote.second;
-    while(currInput != "") {
-        const auto escape = parse(character('\\'), currInput);
-        if(escape.first != "") {
-            parsedStr << escape.first;
-            currInput = escape.second;
-            if(currInput == "") {
-                return ParseResult({ "", input });
-            }
-
-            parsedStr << currInput[0];
-            currInput = currInput.substr(1);
-            continue;
-        }
-        
-        const auto endQuote = parse(character('\''), currInput);
-        if(endQuote.first != "") {
-            parsedStr << endQuote.first;
-            currInput = endQuote.second;
-            return ParseResult({ parsedStr.str(), currInput });
-        }
-
-        parsedStr << currInput[0];
-        currInput = currInput.substr(1);
-    }
-    return ParseResult({ "", input });
+    const std::vector<Parser> steps = {
+        character('\''),
+        either(
+            doParsers( // Non-empty string
+                {
+                    multiple(
+                        either(
+                            doParsers({ character('\\'), anyChar }),
+                            anyCharExcept({ '\'', '\\' })
+                        )
+                    ), character('\'')
+                }
+            ), character('\'') // Empty string
+        )
+    };
+    return parse(doParsers(steps), input);
 };
