@@ -41,7 +41,7 @@ namespace good_basic {
                     " from ('quit' to quit): ";
                 std::cin >> input;
                 const auto result = parser::parse(
-                    parser::some(parser::digit), input
+                    parser::multiple(parser::digit), input
                 );
                 std::cout << "Pair: { " 
                     << result.first << ", " << result.second << " }"

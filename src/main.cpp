@@ -7,6 +7,7 @@ int main(int argc, char **args) {
     //tests::basicParseCharacter();
     //tests::parseMultiDigits();
     //tests::parseEither();
-    tests::parseStrings();
+    tests::parseInteger();
+    //tests::parseStrings();
     return 0;
 }

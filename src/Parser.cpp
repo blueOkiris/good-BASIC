@@ -9,6 +9,22 @@
 using namespace good_basic;
 using namespace parser;
 
+Parser parser::doParsers(const std::vector<Parser>& steps) {
+    return [steps](const std::string& input) {
+        auto currInput = input;
+        std::stringstream finalParse;
+        for(const auto& parserFunc : steps) {
+            const auto result = parse(parserFunc, currInput);
+            if(result.first == "") {
+                return ParseResult({ "", input });
+            }
+            finalParse << result.first;
+            currInput = result.second;
+        }
+        return ParseResult({ finalParse.str(), currInput });
+    };
+}
+
 const Parser parser::digit = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isDigit(input[0])) {
         return ParseResult({ "", input });
@@ -27,7 +43,15 @@ const Parser parser::character(const char c) {
     };
 }
 
-const Parser parser::some(const Parser& parserFunc) {
+const Parser parser::any = [](const std::string& input) {
+    if(input.length() < 1) {
+        return ParseResult({ "", input });
+    } else {
+        return ParseResult({ input.substr(0, 1), input.substr(1) });
+    }
+};
+
+Parser parser::multiple(const Parser& parserFunc) {
     return [parserFunc](const std::string& input) {
         std::stringstream success;
         auto result = parse(parserFunc, input);
@@ -39,7 +63,7 @@ const Parser parser::some(const Parser& parserFunc) {
     };
 }
 
-const Parser parser::either(const Parser& parser1, const Parser& parser2) {
+Parser parser::either(const Parser& parser1, const Parser& parser2) {
     return [parser1, parser2](const std::string& input) {
         const auto try1 = parse(parser1, input);
         if(try1.first == "") {
@@ -52,9 +76,12 @@ const Parser parser::either(const Parser& parser1, const Parser& parser2) {
 
 // <int> ::= /-?[0-9]+/
 const Parser parser::integer = [](const std::string &input) {
-    const auto negSymb = parse(character('-'), input);
-    const auto natNum = parse(some(digit), negSymb.second);
-    return ParseResult({ negSymb.first + natNum.first, natNum.second });
+    return parse(
+        either(
+            doParsers({ character('-'), multiple(digit) }),
+            multiple(digit)
+        ), input
+    );
 };
 
 // <string> ::= /'(\\.|[^\\'])*'/

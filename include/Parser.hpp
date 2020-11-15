@@ -21,12 +21,15 @@ namespace good_basic {
             return parserFunc(input);
         }
 
-        extern const Parser digit;
-        extern const Parser character(const char c);
-        extern const Parser some(const Parser& parserFunc);
-        extern const Parser either(
+        Parser multiple(const Parser& parserFunc);
+        Parser either(
             const Parser &parser1, const Parser& parser2
         );
+        Parser doParsers(const std::vector<Parser>& steps);
+
+        extern const Parser any;
+        extern const Parser digit;
+        extern const Parser character(const char c);
 
         extern const Parser integer;
         extern const Parser str;
