@@ -90,5 +90,18 @@ namespace good_basic {
                     << std::endl;
             }
         }
+
+        inline void parseFloats() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse floats from ('quit' to quit): ";
+                std::getline(std::cin, input);
+                const auto result = parser::parse(parser::decimal, input);
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
     }
 }

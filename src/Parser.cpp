@@ -93,8 +93,9 @@ Parser parser::either(const Parser& parser1, const Parser& parser2) {
 const Parser parser::integer = [](const std::string &input) {
     return parse(
         either(
-            doParsers({ character('-'), multiple(digit) }),
-            multiple(digit)
+            doParsers(
+                { either(character('-'), character('+')), multiple(digit) }
+            ), multiple(digit)
         ), input
     );
 };
@@ -117,4 +118,26 @@ const Parser parser::str = [](const std::string &input) {
         )
     };
     return parse(doParsers(steps), input);
+};
+
+// <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
+const Parser parser::decimal = [](const std::string &input) {
+    const std::vector<Parser> nonNegSteps = {
+        either(
+            either(
+                doParsers({ multiple(digit), character('.'), multiple(digit) }),
+                doParsers({ multiple(digit), character('.') })
+            ), doParsers({ character('.'), multiple(digit) })
+        )
+    };
+    const auto basicNumber = either(
+        doParsers({ character('-'), doParsers(nonNegSteps) }),
+        doParsers(nonNegSteps)
+    );
+    
+    const auto scienceNumber = either(
+        doParsers({ basicNumber, character('e'), integer }),
+        basicNumber
+    );
+    return parse(scienceNumber, input);
 };

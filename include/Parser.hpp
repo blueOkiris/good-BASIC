@@ -34,5 +34,6 @@ namespace good_basic {
 
         extern const Parser integer;
         extern const Parser str;
+        extern const Parser decimal;
     }
 }

@@ -8,6 +8,7 @@ int main(int argc, char **args) {
     //tests::parseMultiDigits();
     //tests::parseEither();
     //tests::parseInteger();
-    tests::parseStrings();
+    //tests::parseStrings();
+    tests::parseFloats();
     return 0;
 }
