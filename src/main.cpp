@@ -5,6 +5,7 @@ using namespace good_basic;
 int main(int argc, char **args) {
     //tests::basicParseDigit();
     //tests::basicParseCharacter();
-    tests::parseMultiDigits();
+    //tests::parseMultiDigits();
+    tests::parseEither();
     return 0;
 }

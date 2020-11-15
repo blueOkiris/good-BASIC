@@ -48,5 +48,21 @@ namespace good_basic {
                     << std::endl;
             }
         }
+
+        inline void parseEither() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse a digit or 'a'"
+                    " from ('quit' to quit): ";
+                std::cin >> input;
+                const auto result = parser::parse(
+                    parser::either(parser::digit, parser::character('a')), input
+                );
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
     }
 }

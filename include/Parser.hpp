@@ -24,5 +24,8 @@ namespace good_basic {
         extern const Parser digit;
         extern const Parser character(const char c);
         extern const Parser some(const Parser& parserFunc);
+        extern const Parser either(
+            const Parser &parser1, const Parser& parser2
+        );
     }
 }

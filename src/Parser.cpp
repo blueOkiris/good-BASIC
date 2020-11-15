@@ -39,3 +39,14 @@ const Parser parser::some(const Parser& parserFunc) {
         return ParseResult({ success.str(), result.second });
     };
 }
+
+const Parser parser::either(const Parser& parser1, const Parser& parser2) {
+    return [parser1, parser2](const std::string& input) {
+        const auto try1 = parse(parser1, input);
+        if(try1.first == "") {
+            return parse(parser2, input);
+        } else {
+            return try1;
+        }
+    };
+}
