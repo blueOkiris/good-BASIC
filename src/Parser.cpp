@@ -33,6 +33,14 @@ const Parser parser::digit = [](const std::string& input) {
     }
 };
 
+const Parser parser::alpha = [](const std::string& input) {
+    if(input.length() < 1 || !parser_helpers::isAlpha(input[0])) {
+        return ParseResult({ "", input });
+    } else {
+        return ParseResult({ input.substr(0, 1), input.substr(1) });
+    }
+};
+
 const Parser parser::anyChar = [](const std::string& input) {
     if(input.length() < 1) {
         return ParseResult({ "", input });
@@ -134,10 +142,22 @@ const Parser parser::decimal = [](const std::string &input) {
         doParsers({ character('-'), doParsers(nonNegSteps) }),
         doParsers(nonNegSteps)
     );
-    
+
     const auto scienceNumber = either(
         doParsers({ basicNumber, character('e'), integer }),
         basicNumber
     );
     return parse(scienceNumber, input);
+};
+
+// <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
+const Parser parser::ident = [](const std::string &input) {
+    const auto firstChar = either(alpha, character('_'));
+    const auto laterChars = either(either(alpha, character('_')), digit);
+    return parse(
+        either(
+            doParsers({ firstChar, multiple(laterChars) }),
+            firstChar
+        ), input
+    );
 };

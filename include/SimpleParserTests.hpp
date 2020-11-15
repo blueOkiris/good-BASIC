@@ -103,5 +103,19 @@ namespace good_basic {
                     << std::endl;
             }
         }
+
+        inline void parseIdent() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse identifiers"
+                    " from ('quit' to quit): ";
+                std::getline(std::cin, input);
+                const auto result = parser::parse(parser::ident, input);
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
     }
 }

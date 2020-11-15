@@ -1,4 +1,4 @@
-#include <Tests.hpp>
+#include <SimpleParserTests.hpp>
 
 using namespace good_basic;
 
@@ -9,6 +9,7 @@ int main(int argc, char **args) {
     //tests::parseEither();
     //tests::parseInteger();
     //tests::parseStrings();
-    tests::parseFloats();
+    //tests::parseFloats();
+    tests::parseIdent();
     return 0;
 }
