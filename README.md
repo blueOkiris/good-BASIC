@@ -70,4 +70,6 @@ end
 
 ## Building
 
-Currently, there is no source, but when there is, I'll probably use a Makefile, so to build the compiler: `make`
+To build the default C++ compiler, run `make`
+
+I intend to rewrite the compiler in Good BASIC once the initial compiler is done.
