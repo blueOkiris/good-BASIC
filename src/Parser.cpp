@@ -173,4 +173,11 @@ const Parser parser::ident = [](const std::string &input) {
  *            | lambda | <comp-rec-dec>
  *            | <member-acc> | <func-call> | '(' <expr> ')'
  */
-const Parser parser::factor = selectFrom({ ident, decimal, integer, str });
+const Parser parser::factor = selectFrom(
+    {
+        ident, decimal, integer, str,
+        lambda, compOrRecDecl,
+        memberAccess, funcCall,
+        doParsers({ character('{'), expr, character('}') })
+    }
+);
