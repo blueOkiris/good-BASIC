@@ -174,8 +174,19 @@ Now to actually write up an ebnf grammar to follow while writing the parser
 <assignment>    ::= <ident> '=' <expr>
 <return>        ::= 'return' <expr>
 
-<expr>          ::= <term> { ('+' | '-') <term> }
+<expr>          ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
+<product>       ::= <summation> { ( '*' | '/' | '%' ) <summation> }
+<summation>     ::= <shift> { ( '+' | '-' ) <shift> }
+<shift>         ::= <inequality> { ( '<<' | '>>' ) <inequality> }
+<inequality>    ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
+<equality>      ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
+<mask-off>      ::= <exclusive> { '&' <exclusive> }
+<exclusive>     ::= <mask-on> { '^' <mask-on> }
+<mask-on>       ::= <conjunction> { '|' <conjunction> }
+<conjunction>   ::= <option> { '&&' <option> }
+<option>        ::= <term> { '||' <term> }
 <term>          ::= <factor> { ( '*' | '/' ) | <factor> }
+
 <factor>        ::= <ident> | <int> | <float> | <string>
                   | lambda | <comp-rec-dec>
                   | <member-acc> | <func-call> | '(' <expr> ')'
