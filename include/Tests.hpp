@@ -12,11 +12,9 @@ namespace good_basic {
                     "Enter a value to parse digits from ('quit' to quit): ";
                 std::cin >> input;
                 const auto result = parser::parse(parser::digit, input);
-                for(const auto& item : result) {
-                    std::cout << "Pair: { " 
-                        << item.first << ", " << item.second << " }"
-                        << std::endl;
-                }
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
             }
         }
 
@@ -29,11 +27,25 @@ namespace good_basic {
                 const auto result = parser::parse(
                     parser::character('a'), input
                 );
-                for(const auto& item : result) {
-                    std::cout << "Pair: { " 
-                        << item.first << ", " << item.second << " }"
-                        << std::endl;
-                }
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
+
+        inline void parseMultiDigits() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse multiple digits"
+                    " from ('quit' to quit): ";
+                std::cin >> input;
+                const auto result = parser::parse(
+                    parser::some(parser::digit), input
+                );
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
             }
         }
     }

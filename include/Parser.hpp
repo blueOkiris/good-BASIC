@@ -13,19 +13,16 @@ namespace good_basic {
     }
 
     namespace parser {
-        template<typename ast>
-        using ParseResult = std::vector<std::pair<ast, std::string>>;
+        using ParseResult = std::pair<std::string, std::string>;
+        using Parser = std::function<ParseResult(const std::string&)>;
 
-        template<typename ast>
-        using Parser = std::function<ParseResult<ast>(const std::string&)>;
-
-        template<typename ast>
-        inline ParseResult<ast> parse(
-                const Parser<ast>& parserFunc, const std::string& input) {
+        inline ParseResult parse(
+                const Parser& parserFunc, const std::string& input) {
             return parserFunc(input);
         }
 
-        extern const Parser<std::string> digit;
-        extern const Parser<std::string> character(const char c);
+        extern const Parser digit;
+        extern const Parser character(const char c);
+        extern const Parser some(const Parser& parserFunc);
     }
 }
