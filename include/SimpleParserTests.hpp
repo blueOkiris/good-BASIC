@@ -117,5 +117,18 @@ namespace good_basic {
                     << std::endl;
             }
         }
+
+        inline void parseFactor() {
+            std::string input = "";
+            while(input != "quit") {
+                std::cout << 
+                    "Enter a value to parse a factor from ('quit' to quit): ";
+                std::getline(std::cin, input);
+                const auto result = parser::parse(parser::factor, input);
+                std::cout << "Pair: { " 
+                    << result.first << ", " << result.second << " }"
+                    << std::endl;
+            }
+        }
     }
 }

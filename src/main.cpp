@@ -10,6 +10,7 @@ int main(int argc, char **args) {
     //tests::parseInteger();
     //tests::parseStrings();
     //tests::parseFloats();
-    tests::parseIdent();
+    //tests::parseIdent();
+    tests::parseFactor();
     return 0;
 }

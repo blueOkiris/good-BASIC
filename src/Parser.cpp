@@ -87,7 +87,7 @@ Parser parser::selectFrom(const std::vector<Parser>& options) {
             const auto attempt = parse(option, input);
             if(attempt.first != "") {
                 return attempt;
-            };
+            }
         }
         return ParseResult({ "", input });
     };
@@ -110,19 +110,14 @@ Parser parser::doParsers(const std::vector<Parser>& steps) {
 }
 
 // <int> ::= /-?[0-9]+/
-const Parser parser::integer = [](const std::string &input) {
-    return parse(
-        either(
-            doParsers(
-                { either(character('-'), character('+')), multiple(digit) }
-            ), multiple(digit)
-        ), input
-    );
-};
+const Parser parser::integer = either(
+    doParsers({ either(character('-'), character('+')), multiple(digit) }),
+    multiple(digit)
+);
 
 // <string> ::= /'(\\.|[^\\'])*'/
-const Parser parser::str = [](const std::string &input) {
-    const std::vector<Parser> steps = {
+const Parser parser::str = doParsers(
+    {
         character('\''),
         either(
             doParsers( // Non-empty string
@@ -136,9 +131,8 @@ const Parser parser::str = [](const std::string &input) {
                 }
             ), character('\'') // Empty string
         )
-    };
-    return parse(doParsers(steps), input);
-};
+    }
+);
 
 // <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
 const Parser parser::decimal = [](const std::string &input) {
@@ -173,3 +167,10 @@ const Parser parser::ident = [](const std::string &input) {
         ), input
     );
 };
+
+/*
+ * <factor> ::= <ident> | <int> | <float> | <string>
+ *            | lambda | <comp-rec-dec>
+ *            | <member-acc> | <func-call> | '(' <expr> ')'
+ */
+const Parser parser::factor = selectFrom({ ident, decimal, integer, str });
