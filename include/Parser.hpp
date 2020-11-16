@@ -58,7 +58,18 @@ namespace good_basic {
 
         // BASIC specific stuff:
         
-        //extern const Parser expr;
+        /*extern const Parser expr;
+        extern const Parser product;
+        extern const Parser summation;
+        extern const Parser shift;
+        extern const Parser inequality;
+        extern const Parser equality;
+        extern const Parser maskOff;
+        extern const Parser exclusive;
+        extern const Parser maskOn;
+        extern const Parser conjunction;
+        extern const Parser option;*/
+        extern const Parser term;
 
         extern const Parser factor;
         extern const Parser memberAccess;

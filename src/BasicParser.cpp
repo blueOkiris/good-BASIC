@@ -3,6 +3,20 @@
 using namespace good_basic;
 using namespace parser;
 
+// <term> ::= <factor> { ( '*' | '/' ) | <factor> }
+const Parser parser::term = either(
+    doParsers(
+        {
+            factor, multiple(
+                doParsers(
+                    { either(character('*'), character('-')), factor },
+                    TokenType::Term
+                )
+            )
+        }, TokenType::Term
+    ), doParsers({ factor }, TokenType::Term)
+);
+
 /*
  * <factor> ::= <ident> | <int> | <float> | <string>
  *            | lambda | <comp-rec-dec>
@@ -34,8 +48,8 @@ const Parser parser::funcCall = [](const std::string& input) {
     };
     return parse(
         either(
-            doParsers(steps, TokenType::FuncCall),
-            doParsers(stepsWExpr, TokenType::FuncCall)
+            doParsers(stepsWExpr, TokenType::FuncCall),
+            doParsers(steps, TokenType::FuncCall)
         ), input
     );
 };
@@ -65,13 +79,13 @@ const Parser parser::compOrRecDecl = doParsers(
         character('d'), character('a'), character('t'), character('a'),
         ident, character('('),
         /*either(
-            expr, doParsers(
+            doParsers(
                 {
                     expr, multiple(
                         doParsers( { character(','), expr }, TokenType::Expr)
                     )
                 }, TokenType::Expr
-            )
+            ), expr
         ),*/
         character(')')
     }, TokenType::CompOrRecDec
