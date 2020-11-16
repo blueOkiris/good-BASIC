@@ -3,6 +3,175 @@
 using namespace good_basic;
 using namespace parser;
 
+// <expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
+const Parser parser::expr = selectFrom(
+    {
+        doParsers(
+            {
+                either(character('!'), character('~')),
+                product,
+                either(
+                    doParsers(
+                        { character('+'), character('+') }, TokenType::Expr
+                    ), doParsers(
+                        { character('-'), character('-') }, TokenType::Expr
+                    )
+                )
+            }, TokenType::Expr
+        ), doParsers(
+            {
+                product,
+                either(
+                    doParsers(
+                        { character('+'), character('+') }, TokenType::Expr
+                    ), doParsers(
+                        { character('-'), character('-') }, TokenType::Expr
+                    )
+                )
+            }, TokenType::Expr
+        ), doParsers(
+            {
+                either(character('!'), character('~')),
+                product
+            }, TokenType::Expr
+        ), doParsers({ product }, TokenType::Expr)
+    }
+);
+
+// <product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
+const Parser parser::product = either(
+    doParsers(
+        {
+            summation, multiple(
+                doParsers(
+                    {
+                        selectFrom(
+                            { character('*'), character('/'), character('%') }
+                        ), summation 
+                    }, TokenType::Product
+                )
+            )
+        }, TokenType::Product
+    ), doParsers({ summation }, TokenType::Product)
+);
+
+// <summation> ::= <shift> { ( '+' | '-' ) <shift> }
+const Parser parser::summation = either(
+    doParsers(
+        {
+            shift, multiple(
+                doParsers(
+                    { either(character('+'), character('-')), shift },
+                    TokenType::Summation
+                )
+            )
+        }, TokenType::Summation
+    ), doParsers({ shift }, TokenType::Summation)
+);
+
+// <shift> ::= <inequality> { ( '<<' | '>>' ) <inequality> }
+const Parser parser::shift = either(
+    doParsers(
+        {
+            inequality, multiple(
+                doParsers(
+                    {
+                        either(
+                            doParsers(
+                                { character('<'), character('<') },
+                                TokenType::Character
+                            ), doParsers(
+                                { character('>'), character('>') },
+                                TokenType::Character
+                            )
+                        ), inequality
+                    },
+                    TokenType::Shift
+                )
+            )
+        }, TokenType::Shift
+    ), doParsers({ inequality }, TokenType::Shift)
+);
+
+// <inequality> ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
+const Parser parser::inequality = either(
+    doParsers(
+        {
+            equality, multiple(
+                doParsers(
+                    {
+                        selectFrom(
+                            {
+                                character('<'), character('>'),
+                                doParsers(
+                                    { character('<'), character('=') },
+                                    TokenType::Character
+                                ), doParsers(
+                                    { character('>'), character('=') },
+                                    TokenType::Character
+                                )
+                            }
+                        ), equality
+                    },
+                    TokenType::Inequality
+                )
+            )
+        }, TokenType::Inequality
+    ), doParsers({ equality }, TokenType::Inequality)
+);
+
+// <equality> ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
+const Parser parser::equality = either(
+    doParsers(
+        {
+            maskOff, multiple(
+                doParsers(
+                    {
+                        either(
+                            doParsers(
+                                { character('='), character('=') },
+                                TokenType::Character
+                            ), doParsers(
+                                { character('!'), character('=') },
+                                TokenType::Character
+                            )
+                        ), maskOff
+                    },
+                    TokenType::Equality
+                )
+            )
+        }, TokenType::Equality
+    ), doParsers({ maskOff }, TokenType::Equality)
+);
+
+// <mask-off> ::= <exclusive> { '&' <exclusive> }
+const Parser parser::maskOff = either(
+    doParsers(
+        {
+            exclusive, multiple(
+                doParsers(
+                    { character('&'), exclusive },
+                    TokenType::MaskOff
+                )
+            )
+        }, TokenType::MaskOff
+    ), doParsers({ exclusive }, TokenType::MaskOff)
+);
+
+// <exclusive> ::= <mask-on> { '^' <mask-on> }
+const Parser parser::exclusive = either(
+    doParsers(
+        {
+            maskOn, multiple(
+                doParsers(
+                    { character('^'), maskOn },
+                    TokenType::Exclusive
+                )
+            )
+        }, TokenType::Exclusive
+    ), doParsers({ maskOn }, TokenType::Exclusive)
+);
+
 // <mask-on> ::= <conjunction> { '|' <conjunction> }
 const Parser parser::maskOn = either(
     doParsers(
@@ -35,27 +204,14 @@ const Parser parser::conjunction = either(
 const Parser parser::option = either(
     doParsers(
         {
-            term, multiple(
+            factor, multiple(
                 doParsers(
-                    { character('|'), character('|'), term }, TokenType::Option
+                    { character('|'), character('|'), factor },
+                    TokenType::Option
                 )
             )
         }, TokenType::Option
-    ), doParsers({ term }, TokenType::Option)
-);
-
-// <term> ::= <factor> { ( '*' | '/' ) | <factor> }
-const Parser parser::term = either(
-    doParsers(
-        {
-            factor, multiple(
-                doParsers(
-                    { either(character('*'), character('-')), factor },
-                    TokenType::Term
-                )
-            )
-        }, TokenType::Term
-    ), doParsers({ factor }, TokenType::Term)
+    ), doParsers({ factor }, TokenType::Option)
 );
 
 /*
@@ -63,13 +219,19 @@ const Parser parser::term = either(
  *            | lambda | <comp-rec-dec>
  *            | <member-acc> | <func-call> | '(' <expr> ')'
  */
-const Parser parser::factor = selectFrom(
+const Parser parser::factor = doParsers(
     {
-        ident, decimal, integer, str,
-        lambda, compOrRecDecl,
-        memberAccess, funcCall,
-        //doParsers({ character('{'), expr, character('}') })*/
-    }
+        selectFrom(
+            {
+                ident, decimal, integer, str,
+                lambda, compOrRecDecl,
+                memberAccess, funcCall,
+                doParsers(
+                    { character('{'), expr, character('}') }, TokenType::Factor
+                )
+            }
+        )
+    }, TokenType::Factor
 );
 
 // <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
@@ -85,7 +247,7 @@ const Parser parser::funcCall = [](const std::string& input) {
     };
     const std::vector<Parser> stepsWExpr = {
         character('c'), character('a'), character('l'), character('l'), ident,
-        //expr
+        expr
     };
     return parse(
         either(
@@ -119,7 +281,7 @@ const Parser parser::compOrRecDecl = doParsers(
     {
         character('d'), character('a'), character('t'), character('a'),
         ident, character('('),
-        /*either(
+        either(
             doParsers(
                 {
                     expr, multiple(
@@ -127,7 +289,7 @@ const Parser parser::compOrRecDecl = doParsers(
                     )
                 }, TokenType::Expr
             ), expr
-        ),*/
+        ),
         character(')')
     }, TokenType::CompOrRecDec
 );

@@ -184,8 +184,7 @@ Now to actually write up an ebnf grammar to follow while writing the parser
 <exclusive>     ::= <mask-on> { '^' <mask-on> }
 <mask-on>       ::= <conjunction> { '|' <conjunction> }
 <conjunction>   ::= <option> { '&&' <option> }
-<option>        ::= <term> { '||' <term> }
-<term>          ::= <factor> { ( '*' | '/' ) | <factor> }
+<option>        ::= <factor> { '||' <factor> }
 
 <factor>        ::= <ident> | <int> | <float> | <string>
                   | lambda | <comp-rec-dec>
