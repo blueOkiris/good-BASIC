@@ -15,7 +15,7 @@ factor = do
     fac <- memberAcc <|> funcCall <|> lambda <|> compOrRecDec
         <|> ident <|> decimal <|> integer <|> string
         -- <|> step Factor [ char '(', expr, char ')' ]
-    return fac { tokenType = Factor }
+    return $ CompToken Factor (source fac) [ fac ]
 
 -- <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
 memberAcc :: Parser Token
