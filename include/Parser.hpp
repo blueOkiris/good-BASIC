@@ -27,7 +27,12 @@ namespace good_basic {
             Ident, Float, Int, String, Character,
             None
         };
-        using Token = std::pair<TokenType, std::string>;
+        struct Token {
+            TokenType type;
+            std::string source;
+            std::vector<Token> children;
+            std::string str() const;
+        };
         using ParseResult = std::pair<Token, std::string>;
         using Parser = std::function<ParseResult(const std::string&)>;
 
@@ -41,7 +46,9 @@ namespace good_basic {
             const Parser &parser1, const Parser& parser2
         );
         Parser selectFrom(const std::vector<Parser>& steps);
-        Parser doParsers(const std::vector<Parser>& steps);
+        Parser doParsers(
+            const std::vector<Parser>& steps, const TokenType type
+        );
 
         extern const Parser alpha;
         extern const Parser digit;

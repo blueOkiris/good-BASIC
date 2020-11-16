@@ -9,32 +9,68 @@
 using namespace good_basic;
 using namespace parser;
 
+std::string Token::str() const {
+    std::stringstream output;
+    output << "{ " << static_cast<int>(type) << ", " << source;
+    if(children.size() > 0) {
+        output << ", { ";
+        for(const auto& token : children) {
+            output << token.str();
+            output << " ";
+        }
+        output << "}";
+    }
+    output << " }";
+    return output.str();
+}
+
 const Parser parser::digit = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isDigit(input[0])) {
-        return ParseResult({ { TokenType::None, "" }, input });
+        return ParseResult(
+            { { TokenType::None, "", std::vector<Token>() }, input }
+        );
     } else {
         return ParseResult(
-            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+            {
+                {
+                    TokenType::Int, input.substr(0, 1),
+                    std::vector<Token>()
+                }, input.substr(1)
+            }
         );
     }
 };
 
 const Parser parser::alpha = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isAlpha(input[0])) {
-        return ParseResult({ { TokenType::None, "" }, input });
+        return ParseResult(
+            { { TokenType::None, "", std::vector<Token>() }, input }
+        );
     } else {
         return ParseResult(
-            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+            {
+                {
+                    TokenType::Character, input.substr(0, 1),
+                    std::vector<Token>()
+                }, input.substr(1)
+            }
         );
     }
 };
 
 const Parser parser::anyChar = [](const std::string& input) {
     if(input.length() < 1) {
-        return ParseResult({ { TokenType::None, "" }, input });
+        return ParseResult(
+            { { TokenType::None, "", std::vector<Token>() }, input }
+        );
     } else {
         return ParseResult(
-            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+            {
+                {
+                    TokenType::Character, input.substr(0, 1),
+                    std::vector<Token>()
+                }, input.substr(1)
+            }
         );
     }
 };
@@ -42,12 +78,16 @@ const Parser parser::anyChar = [](const std::string& input) {
 Parser parser::character(const char c) {
     return [c](const std::string& input) {
         if(input.length() < 1 || input[0] != c) {
-            return ParseResult({ { TokenType::None, "" }, input });
+            return ParseResult(
+                { { TokenType::None, "", std::vector<Token>() }, input }
+            );
         } else {
             return ParseResult(
                 {
-                    { TokenType::Character, input.substr(0, 1) },
-                    input.substr(1)
+                    {
+                        TokenType::Character, input.substr(0, 1),
+                        std::vector<Token>()
+                    }, input.substr(1)
                 }
             );
         }
@@ -61,13 +101,17 @@ Parser parser::anyCharExcept(const std::vector<char>& options) {
         } else {
             for(const char c : options) {
                 if(input[0] == c) {
-                    return ParseResult({ { TokenType::None, "" }, input });
+                    return ParseResult(
+                        { { TokenType::None, "", std::vector<Token>() }, input }
+                    );
                 }
             }
             return ParseResult(
                 {
-                    { TokenType::Character, input.substr(0, 1) },
-                    input.substr(1)
+                    {
+                        TokenType::Character, input.substr(0, 1),
+                        std::vector<Token>()
+                    }, input.substr(1)
                 }
             );
         }
@@ -78,9 +122,9 @@ Parser parser::multiple(const Parser& parserFunc) {
     return [parserFunc](const std::string& input) {
         std::stringstream success;
         auto result = parse(parserFunc, input);
-        TokenType type = result.first.first;
-        while(result.first.first != TokenType::None) {
-            success << result.first.second;
+        TokenType type = result.first.type;
+        while(result.first.type != TokenType::None) {
+            success << result.first.source;
             result = parse(parserFunc, result.second);
         }
         return ParseResult({ { type, success.str() }, result.second });
@@ -90,7 +134,7 @@ Parser parser::multiple(const Parser& parserFunc) {
 Parser parser::either(const Parser& parser1, const Parser& parser2) {
     return [parser1, parser2](const std::string& input) {
         const auto try1 = parse(parser1, input);
-        if(try1.first.first == TokenType::None) {
+        if(try1.first.type == TokenType::None) {
             return parse(parser2, input);
         } else {
             return try1;
@@ -102,7 +146,7 @@ Parser parser::selectFrom(const std::vector<Parser>& options) {
     return [options](const std::string& input) {
         for(const auto& option : options) {
             const auto attempt = parse(option, input);
-            if(attempt.first.first != TokenType::None) {
+            if(attempt.first.type != TokenType::None) {
                 return attempt;
             }
         }
@@ -110,28 +154,31 @@ Parser parser::selectFrom(const std::vector<Parser>& options) {
     };
 }
 
-Parser parser::doParsers(const std::vector<Parser>& steps) {
-    return [steps](const std::string& input) {
+Parser parser::doParsers(
+        const std::vector<Parser>& steps, const TokenType type) {
+    return [steps, type](const std::string& input) {
         auto currInput = input;
         std::stringstream finalParse;
-        TokenType type = TokenType::None;
+        std::vector<Token> children;
         for(const auto& parserFunc : steps) {
             const auto result = parse(parserFunc, currInput);
-            if(result.first.first == TokenType::None) {
+            if(result.first.type == TokenType::None) {
                 return ParseResult({ { TokenType::None, "" }, input });
             }
-            finalParse << result.first.second;
-            type = result.first.first;
+            children.push_back(result.first);
+            finalParse << result.first.source;
             currInput = result.second;
         }
-        return ParseResult({ { type, finalParse.str() }, currInput });
+        return ParseResult({ { type, finalParse.str(), children }, currInput });
     };
 }
 
 // <int> ::= /-?[0-9]+/
 const Parser parser::integer = either(
-    doParsers({ either(character('-'), character('+')), multiple(digit) }),
-    multiple(digit)
+    doParsers(
+        { either(character('-'), character('+')), multiple(digit) },
+        TokenType::Int
+    ), multiple(digit)
 );
 
 // <string> ::= /'(\\.|[^\\'])*'/
@@ -143,14 +190,16 @@ const Parser parser::str = doParsers(
                 {
                     multiple(
                         either(
-                            doParsers({ character('\\'), anyChar }),
-                            anyCharExcept({ '\'', '\\' })
+                            doParsers(
+                                { character('\\'), anyChar },
+                                TokenType::Character
+                            ), anyCharExcept({ '\'', '\\' })
                         )
                     ), character('\'')
-                }
+                }, TokenType::String
             ), character('\'') // Empty string
         )
-    }
+    }, TokenType::String
 );
 
 // <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
@@ -158,18 +207,24 @@ const Parser parser::decimal = [](const std::string &input) {
     const std::vector<Parser> nonNegSteps = {
         either(
             either(
-                doParsers({ multiple(digit), character('.'), multiple(digit) }),
-                doParsers({ multiple(digit), character('.') })
-            ), doParsers({ character('.'), multiple(digit) })
+                doParsers(
+                    { multiple(digit), character('.'), multiple(digit) },
+                    TokenType::Float
+                ), doParsers(
+                    { multiple(digit), character('.') }, TokenType::Float
+                )
+            ), doParsers({ character('.'), multiple(digit) }, TokenType::Float)
         )
     };
     const auto basicNumber = either(
-        doParsers({ character('-'), doParsers(nonNegSteps) }),
-        doParsers(nonNegSteps)
+        doParsers(
+            { character('-'), doParsers(nonNegSteps, TokenType::Int) },
+            TokenType::Float
+        ), doParsers(nonNegSteps, TokenType::Int)
     );
 
     const auto scienceNumber = either(
-        doParsers({ basicNumber, character('e'), integer }),
+        doParsers({ basicNumber, character('e'), integer }, TokenType::Float),
         basicNumber
     );
     return parse(scienceNumber, input);
@@ -181,8 +236,8 @@ const Parser parser::ident = [](const std::string &input) {
     const auto laterChars = selectFrom({ alpha, character('_'), digit });
     return parse(
         either(
-            doParsers({ firstChar, multiple(laterChars) }),
-            firstChar
+            doParsers({ firstChar, multiple(laterChars) }, TokenType::Ident),
+            doParsers({ firstChar }, TokenType::Ident)
         ), input
     );
 };

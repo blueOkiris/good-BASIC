@@ -13,7 +13,7 @@ namespace good_basic {
                 std::cin >> input;
                 const auto result = parser::parse(parser::digit, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -28,7 +28,7 @@ namespace good_basic {
                     parser::character('a'), input
                 );
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -44,7 +44,7 @@ namespace good_basic {
                     parser::multiple(parser::digit), input
                 );
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -60,7 +60,7 @@ namespace good_basic {
                     parser::either(parser::digit, parser::character('a')), input
                 );
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -73,7 +73,7 @@ namespace good_basic {
                 std::cin >> input;
                 const auto result = parser::parse(parser::integer, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -86,7 +86,7 @@ namespace good_basic {
                 std::getline(std::cin, input);
                 const auto result = parser::parse(parser::str, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -99,7 +99,7 @@ namespace good_basic {
                 std::getline(std::cin, input);
                 const auto result = parser::parse(parser::decimal, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -113,7 +113,7 @@ namespace good_basic {
                 std::getline(std::cin, input);
                 const auto result = parser::parse(parser::ident, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.source << ", " << result.second << " }"
                     << std::endl;
             }
         }
@@ -126,7 +126,7 @@ namespace good_basic {
                 std::getline(std::cin, input);
                 const auto result = parser::parse(parser::factor, input);
                 std::cout << "Pair: { " 
-                    << result.first.second << ", " << result.second << " }"
+                    << result.first.str() << ", " << result.second << " }"
                     << std::endl;
             }
         }
