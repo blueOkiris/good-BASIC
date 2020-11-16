@@ -250,7 +250,7 @@ const Parser parser::ident = [](const std::string &input) {
 const Parser parser::factor = selectFrom(
     {
         ident, decimal, integer, str,
-        lambda, //compOrRecDecl,
+        lambda, compOrRecDecl,
         memberAccess, funcCall,
         //doParsers({ character('{'), expr, character('}') })*/
     }
@@ -291,4 +291,21 @@ const Parser parser::lambda = doParsers(
         ),
         character('e'), character('n'), character('d')
     }, TokenType::Lambda
+);
+
+const Parser parser::compOrRecDecl = doParsers(
+    {
+        character('d'), character('a'), character('t'), character('a'),
+        ident, character('('),
+        /*either(
+            expr, doParsers(
+                {
+                    expr, multiple(
+                        doParsers( { character(','), expr }, TokenType::Expr)
+                    )
+                }, TokenType::Expr
+            )
+        ),*/
+        character(')')
+    }, TokenType::CompOrRecDec
 );
