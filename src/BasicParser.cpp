@@ -3,6 +3,19 @@
 using namespace good_basic;
 using namespace parser;
 
+// <option> ::= <term> { '||' <term> }
+const Parser parser::option = either(
+    doParsers(
+        {
+            term, multiple(
+                doParsers(
+                    { character('|'), character('|'), term }, TokenType::Option
+                )
+            )
+        }, TokenType::Option
+    ), doParsers({ term }, TokenType::Option)
+);
+
 // <term> ::= <factor> { ( '*' | '/' ) | <factor> }
 const Parser parser::term = either(
     doParsers(
