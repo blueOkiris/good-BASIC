@@ -16,5 +16,5 @@ clean :
 	rm -rf $(OBJNAME)
 
 # Main targets
-$(OBJNAME) : $(OBJS)
+$(OBJNAME) : $(SRC)
 	$(HC) -o $@ $(SRC)
