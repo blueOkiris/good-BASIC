@@ -255,3 +255,9 @@ const Parser parser::factor = selectFrom(
         doParsers({ character('{'), expr, character('}') })*/
     }
 );
+
+// <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
+const Parser parser::memberAccess = doParsers(
+    { ident, character(':'), either(memberAccess, ident) },
+    TokenType::MemberAccess
+);
