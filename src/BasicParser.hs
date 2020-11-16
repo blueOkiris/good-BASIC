@@ -1,9 +1,68 @@
-module BasicParser  ( factor, memberAcc, funcCall, lambda, compOrRecDec
+module BasicParser  ( expr, prod, shift, inequality, equality, maskOff
+                    , exclusive, maskOn, conjunction, option
+                    , factor, memberAcc, funcCall, lambda, compOrRecDec
                     , ident, decimal, integer, string ) where
 
 import Control.Applicative(Alternative(..))
 import Parser
 import Token
+
+-- <expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
+expr :: Parser Token
+expr =
+    step Expr [ char '!' <|> char '~', prod, chars "++" <|> chars "--" ]
+    <|> step Expr [ char '!' <|> char '~', prod ]
+    <|> step Expr [ prod, chars "++" <|> chars "--" ]
+    <|> prod
+
+-- <product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
+prod :: Parser Token
+prod =
+    step Product [ summation, char '*' <|> char '/' <|> char '%', summation ]
+    <|> summation
+
+-- <summation> ::= <shift> { ( '+' | '-' ) <shift> }
+summation :: Parser Token
+summation = step Summation [ shift, char '+' <|> char '-', shift ] <|> shift
+
+-- <shift> ::= <inequality> { ( '<<' | '>>' ) <inequality> }
+shift :: Parser Token
+shift =
+    step Shift [ inequality, chars "<<" <|> chars ">>", inequality ]
+    <|> inequality
+
+-- <inequality> ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
+inequality :: Parser Token
+inequality =
+    step Inequality [ equality
+                    , chars "<=" <|> chars ">=" <|> char '<' <|> char '>'
+                    , equality ]
+    <|> equality
+
+-- <equality> ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
+equality :: Parser Token
+equality =
+    step Equality [ maskOff, chars "==" <|> chars "!=", maskOff ] <|> maskOff
+
+-- <mask-off> ::= <exclusive> { '&' <exclusive> }
+maskOff :: Parser Token
+maskOff = step MaskOff [ exclusive, char '&', exclusive ] <|> exclusive
+
+-- <exclusive> ::= <mask-on> { '^' <mask-on> }
+exclusive :: Parser Token
+exclusive = step Exclusive [ maskOn, char '^', maskOn ] <|> maskOn
+
+-- <mask-on> ::= <conjunction> { '|' <conjunction> }
+maskOn :: Parser Token
+maskOn = step MaskOn [ conjunction, chars "&&", conjunction ] <|> conjunction
+
+-- <conjunction> ::= <option> { '&&' <option> }
+conjunction :: Parser Token
+conjunction = step Conjunction [ option, chars "&&", option ] <|> option
+
+-- <option> ::= <factor> { '||' <factor> }
+option :: Parser Token
+option = step Option [ factor, chars "||", factor ] <|> factor
 
 {-
  - <factor> ::= <ident> | <int> | <float> | <string>
@@ -11,11 +70,9 @@ import Token
  -            | <member-acc> | <func-call> | '(' <expr> ')'
  -}
 factor :: Parser Token
-factor = do
-    fac <- memberAcc <|> funcCall <|> lambda <|> compOrRecDec
+factor = memberAcc <|> funcCall <|> lambda <|> compOrRecDec
         <|> ident <|> decimal <|> integer <|> string
-        -- <|> step Factor [ char '(', expr, char ')' ]
-    return $ CompToken Factor (source fac) [ fac ]
+        <|> step Factor [ char '(', expr, char ')' ]
 
 -- <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
 memberAcc :: Parser Token
@@ -30,7 +87,7 @@ funcCall :: Parser Token
 funcCall = do
     keyword <- chars "call"
     name <- ident
-    --exprs <- multiple expr
+    exprs <- multiple expr
     return $ combineMany FuncCall [ keyword, name{-, exprs-}]
 
 {-
@@ -56,15 +113,17 @@ compOrRecDec = do
     keyword <- chars "data"
     name <- ident
     lpar <- char '('
+    
     -- [ <expr> { ',' <expr> } ]
-    {-firstExpr <- expr
+    firstExpr <- expr
     nextExprs <- multiple $ step Expr [ char ',', expr ]
-                <|> RawToken UndefToken ""
-    let exprList =  if undefToken nextExprs then expr else
-                        combine firstExpr nextExprs-}
+                <|> do return $ RawToken UndefToken ""
+    let exprList =  if undefToken nextExprs then firstExpr else
+                        combine firstExpr nextExprs
+    
     rpar <- char ')'
     return $
-        combineMany CompOrRecDec [ keyword, name, lpar, {-exprList,-} rpar ]
+        combineMany CompOrRecDec [ keyword, name, lpar, exprList, rpar ]
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
