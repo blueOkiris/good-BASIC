@@ -1,3 +1,4 @@
 gbc
-obj/
+*.o
+*.hi
 .vscode/
