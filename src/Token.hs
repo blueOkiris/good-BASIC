@@ -31,7 +31,7 @@ combine tok1 tok2 =
 
 combineMany :: TokenType -> [Token] -> Token
 combineMany tokType toks =
-    CompToken tokType (concatMap source toks) (concatMap children toks)
+    CompToken tokType (concatMap source toks) (concatMap (\t -> [t]) toks)
 
 undefToken :: Token -> Bool
 undefToken tok = tokenType tok == UndefToken

@@ -47,8 +47,13 @@ multiple parser = do
     <|> parser
     
 skipWs :: Parser Token
-skipWs =
-    multiple (condChar isSpace) <|> do return $ RawToken UndefToken ""
+skipWs = Parser wsSkipFunc
+    
+wsSkipFunc :: String -> [ (Token, String) ]     
+wsSkipFunc input
+    | null input = [ (RawToken UndefToken "", "") ]
+    | isSpace (head input) = wsSkipFunc (drop 1 input)
+    | otherwise = [ (RawToken UndefToken " ", input) ]
 
 anyChar :: Parser Token
 anyChar =

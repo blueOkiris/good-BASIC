@@ -1,6 +1,7 @@
 module BasicParser where
 
 import Control.Applicative(Alternative(..))
+import Debug.Trace(trace)
 import Parser
 import Token
 
@@ -103,8 +104,10 @@ memberAcc = do
 funcCall :: Parser Token
 funcCall = do
     skipWs; keyword <- chars "call"
+    let debug1 = trace (show keyword) keyword
     name <- ident
-    exprs <- multiple expr
+    let debug2 = trace (show name) name
+    exprs <- expr
     return $ combineMany FuncCall [ keyword, name, exprs ]
 
 {-
@@ -144,10 +147,13 @@ compOrRecDec = do
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
-ident =
-    do skipWs; Ident `from`
-        [ alpha <|> char '_', multiple (alpha <|> char '_' <|> digit) ]
-    <|> do skipWs; alpha <|> char '_'
+ident = do
+    skipWs
+    name <- 
+        Ident `from`
+            [ alpha <|> char '_', multiple (alpha <|> char '_' <|> digit) ]
+        <|> alpha <|> char '_'
+    return $ name { tokenType = Ident }
 
 -- <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
 decimal :: Parser Token
