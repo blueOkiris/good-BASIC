@@ -1,9 +1,9 @@
-module Parser   ( Parser(..), failure, multiple, from
+module Parser   ( Parser(..), failure, multiple, from, skipWs
                 , anyChar, char, chars, alpha, digit, anyCharExcept) where
 
 import Control.Monad(ap, liftM)
 import Control.Applicative(Alternative(..))
-import Data.Char(isAlpha, isDigit)
+import Data.Char(isAlpha, isDigit, isSpace)
 import Token
 
 newtype Parser a = Parser { parse :: String -> [(a, String)] }
@@ -45,6 +45,10 @@ multiple parser = do
     multiple <- multiple parser
     return $ combine first multiple
     <|> parser
+    
+skipWs :: Parser Token
+skipWs =
+    multiple (condChar isSpace) <|> do return $ RawToken UndefToken ""
 
 anyChar :: Parser Token
 anyChar =
@@ -72,9 +76,7 @@ alpha :: Parser Token
 alpha = condChar isAlpha
 
 digit :: Parser Token
-digit = do
-    character <- condChar isDigit
-    return character { tokenType = Digit }
+digit = do character <- condChar isDigit; return character { tokenType = Digit }
 
 anyCharExcept :: [Char] -> Parser Token
 anyCharExcept set = condChar (`notElem` set)

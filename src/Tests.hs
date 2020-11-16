@@ -34,3 +34,11 @@ testStrings = do
     let str = parse string input
     print str
     if input == "quit" then putStrLn "Done." else testStrings
+
+testExpr :: IO()
+testExpr = do
+    putStr "Type value to parse an expression from ('quit' to quit): "
+    input <- getLine
+    let str = parse expr input
+    print str
+    if input == "quit" then putStrLn "Done." else testExpr

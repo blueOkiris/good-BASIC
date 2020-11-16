@@ -6,4 +6,4 @@ import Tests
 main :: IO()
 main = do
     hSetBuffering stdout NoBuffering
-    testStrings
+    testExpr
