@@ -3,6 +3,20 @@
 using namespace good_basic;
 using namespace parser;
 
+// <mask-on> ::= <conjunction> { '|' <conjunction> }
+const Parser parser::maskOn = either(
+    doParsers(
+        {
+            conjunction, multiple(
+                doParsers(
+                    { character('|'), conjunction },
+                    TokenType::MaskOn
+                )
+            )
+        }, TokenType::MaskOn
+    ), doParsers({ conjunction }, TokenType::MaskOn)
+);
+
 // <conjunction> ::= <option> { '&&' <option> }
 const Parser parser::conjunction = either(
     doParsers(

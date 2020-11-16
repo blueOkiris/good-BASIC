@@ -65,8 +65,8 @@ namespace good_basic {
         extern const Parser inequality;
         extern const Parser equality;
         extern const Parser maskOff;
-        extern const Parser exclusive;
-        extern const Parser maskOn;*/
+        extern const Parser exclusive;*/
+        extern const Parser maskOn;
         extern const Parser conjunction;
         extern const Parser option;
         extern const Parser term;
