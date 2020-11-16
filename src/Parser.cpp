@@ -250,9 +250,9 @@ const Parser parser::ident = [](const std::string &input) {
 const Parser parser::factor = selectFrom(
     {
         ident, decimal, integer, str,
-        /*lambda, compOrRecDecl,
+        //lambda, compOrRecDecl,
         memberAccess, funcCall,
-        doParsers({ character('{'), expr, character('}') })*/
+        //doParsers({ character('{'), expr, character('}') })*/
     }
 );
 
@@ -261,3 +261,20 @@ const Parser parser::memberAccess = doParsers(
     { ident, character(':'), either(memberAccess, ident) },
     TokenType::MemberAccess
 );
+
+// <func-call> ::= 'call' <ident> { <expr> }
+const Parser parser::funcCall = [](const std::string& input) {
+    const std::vector<Parser> steps = {
+        character('c'), character('a'), character('l'), character('l'), ident
+    };
+    const std::vector<Parser> stepsWExpr = {
+        character('c'), character('a'), character('l'), character('l'), ident,
+        //expr
+    };
+    return parse(
+        either(
+            doParsers(steps, TokenType::FuncCall),
+            doParsers(stepsWExpr, TokenType::FuncCall)
+        ), input
+    );
+};

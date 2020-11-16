@@ -60,8 +60,8 @@ namespace good_basic {
 
         extern const Parser factor;
         extern const Parser memberAccess;
-        /*extern const Parser funcCall;
-        extern const Parser lambda;
+        extern const Parser funcCall;
+        /*extern const Parser lambda;
         extern const Parser compOrRecDecl;*/
 
         extern const Parser ident;
