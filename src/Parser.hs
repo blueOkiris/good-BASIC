@@ -1,4 +1,4 @@
-module Parser   ( Parser(..), failure, multiple, fromConcat
+module Parser   ( Parser(..), failure, multiple, from
                 , anyChar, char, chars, alpha, digit, anyCharExcept) where
 
 import Control.Monad(ap, liftM)
@@ -30,13 +30,13 @@ instance Alternative Parser where
 failure :: Parser a
 failure = Parser $ const []
 
-fromConcat :: TokenType -> [Parser Token] -> Parser Token
-tokType `fromConcat` steps
+from :: TokenType -> [Parser Token] -> Parser Token
+tokType `from` steps
     | null steps = failure
     | length steps == 1 = head steps
     | otherwise = do
         currStep <- head steps
-        nextSteps <- tokType `fromConcat` (drop 1 steps)
+        nextSteps <- tokType `from` (drop 1 steps)
         return $ (combine currStep nextSteps) { tokenType = tokType }
 
 multiple :: Parser Token -> Parser Token

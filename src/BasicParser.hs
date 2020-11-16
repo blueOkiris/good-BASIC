@@ -10,15 +10,15 @@ import Token
 -- <expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
 expr :: Parser Token
 expr =
-    Expr `fromConcat` [ char '!' <|> char '~', prod, chars "++" <|> chars "--" ]
-    <|> Expr `fromConcat` [ char '!' <|> char '~', prod ]
-    <|> Expr `fromConcat` [ prod, chars "++" <|> chars "--" ]
+    Expr `from` [ char '!' <|> char '~', prod, chars "++" <|> chars "--" ]
+    <|> Expr `from` [ char '!' <|> char '~', prod ]
+    <|> Expr `from` [ prod, chars "++" <|> chars "--" ]
     <|> prod
 
 -- <product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
 prod :: Parser Token
 prod =
-    Product `fromConcat`    [ summation
+    Product `from`    [ summation
                             , char '*' <|> char '/' <|> char '%'
                             , summation ]
     <|> summation
@@ -26,18 +26,18 @@ prod =
 -- <summation> ::= <shift> { ( '+' | '-' ) <shift> }
 summation :: Parser Token
 summation =
-    Summation `fromConcat` [ shift, char '+' <|> char '-', shift ] <|> shift
+    Summation `from` [ shift, char '+' <|> char '-', shift ] <|> shift
 
 -- <shift> ::= <inequality> { ( '<<' | '>>' ) <inequality> }
 shift :: Parser Token
 shift =
-    Shift `fromConcat` [ inequality, chars "<<" <|> chars ">>", inequality ]
+    Shift `from` [ inequality, chars "<<" <|> chars ">>", inequality ]
     <|> inequality
 
 -- <inequality> ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
 inequality :: Parser Token
 inequality =
-    Inequality `fromConcat`
+    Inequality `from`
         [ equality
         , chars "<=" <|> chars ">=" <|> char '<' <|> char '>'
         , equality ]
@@ -46,30 +46,30 @@ inequality =
 -- <equality> ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
 equality :: Parser Token
 equality =
-    Equality `fromConcat` [ maskOff, chars "==" <|> chars "!=", maskOff ]
+    Equality `from` [ maskOff, chars "==" <|> chars "!=", maskOff ]
     <|> maskOff
 
 -- <mask-off> ::= <exclusive> { '&' <exclusive> }
 maskOff :: Parser Token
-maskOff = MaskOff `fromConcat` [ exclusive, char '&', exclusive ] <|> exclusive
+maskOff = MaskOff `from` [ exclusive, char '&', exclusive ] <|> exclusive
 
 -- <exclusive> ::= <mask-on> { '^' <mask-on> }
 exclusive :: Parser Token
-exclusive = Exclusive `fromConcat` [ maskOn, char '^', maskOn ] <|> maskOn
+exclusive = Exclusive `from` [ maskOn, char '^', maskOn ] <|> maskOn
 
 -- <mask-on> ::= <conjunction> { '|' <conjunction> }
 maskOn :: Parser Token
 maskOn =
-    MaskOn `fromConcat` [ conjunction, chars "&&", conjunction ] <|> conjunction
+    MaskOn `from` [ conjunction, chars "&&", conjunction ] <|> conjunction
 
 -- <conjunction> ::= <option> { '&&' <option> }
 conjunction :: Parser Token
 conjunction =
-    Conjunction `fromConcat` [ option, chars "&&", option ] <|> option
+    Conjunction `from` [ option, chars "&&", option ] <|> option
 
 -- <option> ::= <factor> { '||' <factor> }
 option :: Parser Token
-option = Option `fromConcat` [ factor, chars "||", factor ] <|> factor
+option = Option `from` [ factor, chars "||", factor ] <|> factor
 
 {-
  - <factor> ::= <ident> | <int> | <float> | <string>
@@ -79,7 +79,7 @@ option = Option `fromConcat` [ factor, chars "||", factor ] <|> factor
 factor :: Parser Token
 factor = memberAcc <|> funcCall <|> lambda <|> compOrRecDec
         <|> ident <|> decimal <|> integer <|> string
-        <|> Factor `fromConcat` [ char '(', expr, char ')' ]
+        <|> Factor `from` [ char '(', expr, char ')' ]
 
 -- <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
 memberAcc :: Parser Token
@@ -123,7 +123,7 @@ compOrRecDec = do
     
     -- [ <expr> { ',' <expr> } ]
     firstExpr <- expr
-    nextExprs <- multiple $ Expr `fromConcat` [ char ',', expr ]
+    nextExprs <- multiple $ Expr `from` [ char ',', expr ]
                 <|> do return $ RawToken UndefToken ""
     let exprList =  if undefToken nextExprs then firstExpr else
                         combine firstExpr nextExprs
@@ -135,7 +135,7 @@ compOrRecDec = do
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
 ident =
-    Ident `fromConcat`
+    Ident `from`
         [ alpha <|> char '_', multiple (alpha <|> char '_' <|> digit) ]
     <|> (do alpha <|> char '_')
 
@@ -143,10 +143,10 @@ ident =
 decimal :: Parser Token
 decimal = do
     sign <- char '-' <|> char '+' <|> return (RawToken UndefToken "")
-    natNum <- Decimal `fromConcat` [ multiple digit, char '.', multiple digit ]
-        <|> Decimal `fromConcat` [ multiple digit, char '.' ]
-        <|> Decimal `fromConcat` [ char '.', multiple digit ]
-    expon <- UndefToken `fromConcat` [ char 'e', integer ]
+    natNum <- Decimal `from` [ multiple digit, char '.', multiple digit ]
+        <|> Decimal `from` [ multiple digit, char '.' ]
+        <|> Decimal `from` [ char '.', multiple digit ]
+    expon <- UndefToken `from` [ char 'e', integer ]
         <|> return (RawToken UndefToken "")
     let btmCombo = if undefToken expon then natNum else combine natNum expon
     let topCombo = if undefToken sign then btmCombo else combine sign btmCombo
@@ -167,7 +167,7 @@ string :: Parser Token
 string = do
     startQuote <- char '\''
     midChars <-
-        multiple    (   Character `fromConcat` [ char '\\', anyChar ]
+        multiple    (   Character `from` [ char '\\', anyChar ]
                     <|> anyCharExcept [ '\'', '\\' ] )
         <|> return (RawToken UndefToken "")
     endQuote <- char '\''
