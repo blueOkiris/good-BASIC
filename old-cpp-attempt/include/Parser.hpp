@@ -34,7 +34,7 @@ namespace good_basic {
             std::string str() const;
         };
         using ParseResult = std::pair<Token, std::string>;
-        using Parser = std::function<ParseResult(const std::string&)>;
+        using Parser = ParseResult (*)(const std::string& input);
 
         inline ParseResult parse(
                 const Parser& parserFunc, const std::string& input) {

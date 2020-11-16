@@ -76,7 +76,8 @@ const Parser parser::anyChar = [](const std::string& input) {
 };
 
 Parser parser::character(const char c) {
-    return [c](const std::string& input) {
+    std::function<Parser(const std::string&)> chrFunc =
+            [c](const std::string& input) {
         if(input.length() < 1 || input[0] != c) {
             return ParseResult(
                 { { TokenType::None, "", std::vector<Token>() }, input }
@@ -92,6 +93,7 @@ Parser parser::character(const char c) {
             );
         }
     };
+    return chrFunc;
 }
 
 Parser parser::anyCharExcept(const std::vector<char>& options) {

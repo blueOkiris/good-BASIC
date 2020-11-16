@@ -219,20 +219,25 @@ const Parser parser::option = either(
  *            | lambda | <comp-rec-dec>
  *            | <member-acc> | <func-call> | '(' <expr> ')'
  */
-const Parser parser::factor = doParsers(
-    {
-        selectFrom(
+const Parser parser::factor = [](const std::string &input) {
+    return parse(
+        doParsers(
             {
-                ident, decimal, integer, str,
-                lambda, compOrRecDecl,
-                memberAccess, funcCall,
-                doParsers(
-                    { character('{'), expr, character('}') }, TokenType::Factor
+                selectFrom(
+                    {
+                        ident, decimal, integer, str,
+                        lambda, compOrRecDecl,
+                        memberAccess, funcCall,
+                        doParsers(
+                            { character('{'), expr, character('}') },
+                            TokenType::Factor
+                        )
+                    }
                 )
-            }
-        )
-    }, TokenType::Factor
-);
+            }, TokenType::Factor
+        ), input
+    );
+};
 
 // <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
 const Parser parser::memberAccess = doParsers(
@@ -335,12 +340,16 @@ const Parser parser::decimal = [](const std::string &input) {
 };
 
 // <int> ::= /-?[0-9]+/
-const Parser parser::integer = either(
-    doParsers(
-        { either(character('-'), character('+')), multiple(digit) },
-        TokenType::Int
-    ), multiple(digit)
-);
+const Parser parser::integer = [](const std::string& input) {
+    return parse(
+        either(
+            doParsers(
+                { either(character('-'), character('+')), multiple(digit) },
+                TokenType::Int
+            ), multiple(digit)
+        ), input
+    );
+};
 
 // <string> ::= /'(\\.|[^\\'])*'/
 const Parser parser::str = doParsers(
