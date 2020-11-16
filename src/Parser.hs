@@ -1,5 +1,5 @@
 module Parser   ( Parser(..), failure, multiple, step
-                , anyChar, char, alpha, digit, anyCharExcept) where
+                , anyChar, char, chars, alpha, digit, anyCharExcept) where
 
 import Control.Monad(ap, liftM)
 import Control.Applicative(Alternative(..))
@@ -32,6 +32,7 @@ failure = Parser $ const []
 
 step :: TokenType -> [Parser Token] -> Parser Token
 step tokType steps
+    | null steps = failure
     | length steps == 1 = head steps
     | otherwise = do
         currStep <- head steps
@@ -57,6 +58,15 @@ condChar check = do
 
 char :: Char -> Parser Token
 char c = condChar (== c)
+
+chars :: [Char] -> Parser Token
+chars str
+    | null str = failure
+    | length str == 1 = condChar (== head str)
+    | otherwise = do
+        curr <- condChar (== head str)
+        next <- chars (drop 1 str)
+        return $ combine curr next
 
 alpha :: Parser Token
 alpha = condChar isAlpha

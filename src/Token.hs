@@ -1,4 +1,4 @@
-module Token(Token(..), TokenType(..), combine, undefToken) where
+module Token(Token(..), TokenType(..), combine, combineMany, undefToken) where
 
 data TokenType =    Module          | Import        | Export        |
                     Implement       | IdentList     | Definition    |
@@ -28,6 +28,10 @@ combine (RawToken t1 s1) (RawToken t2 s2)
     | otherwise = RawToken t1 (s1 ++ s2)
 combine tok1 tok2 =
     CompToken UndefToken (source tok1 ++ source tok2) [ tok1, tok2 ]
+
+combineMany :: TokenType -> [Token] -> Token
+combineMany tokType toks =
+    CompToken tokType (concatMap source toks) (concatMap children toks)
 
 undefToken :: Token -> Bool
 undefToken tok = tokenType tok == UndefToken

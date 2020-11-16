@@ -1,8 +1,70 @@
-module BasicParser(ident, decimal, integer, string) where
+module BasicParser  ( factor, memberAcc, funcCall, lambda, compOrRecDec
+                    , ident, decimal, integer, string ) where
 
 import Control.Applicative(Alternative(..))
 import Parser
 import Token
+
+{-
+ - <factor> ::= <ident> | <int> | <float> | <string>
+ -            | lambda | <comp-rec-dec>
+ -            | <member-acc> | <func-call> | '(' <expr> ')'
+ -}
+factor :: Parser Token
+factor = do
+    fac <- memberAcc <|> funcCall <|> lambda <|> compOrRecDec
+        <|> ident <|> decimal <|> integer <|> string
+        -- <|> step Factor [ char '(', expr, char ')' ]
+    return fac { tokenType = Factor }
+
+-- <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
+memberAcc :: Parser Token
+memberAcc = do
+    name <- ident
+    colon <- char ':'
+    next <- memberAcc <|> ident
+    return $ combineMany MemberAccess [ name, colon, next ]
+
+-- <func-call> ::= 'call' <ident> { <expr> }
+funcCall :: Parser Token
+funcCall = do
+    keyword <- chars "call"
+    name <- ident
+    --exprs <- multiple expr
+    return $ combineMany FuncCall [ keyword, name{-, exprs-}]
+
+{-
+ - <lambda> ::= 'lambda' '(' [ <type-arg-list> ] ')' <type-name>
+ -                  { <statement> /\n+/ }
+ -              'end'
+ -}
+lambda :: Parser Token
+lambda = do
+    keyword <- chars "lambda"
+    lpar <- char '('
+    --args <- typeArgList
+    rpar <- char ')'
+    --tp <- typeName
+    --stmts <- multiple statement
+    endKey <- chars "end"
+    return $ combineMany Lambda [ keyword, lpar, {-args,-} rpar{-, tp-}
+                                ,{- stmts,-} endKey ]
+
+-- <comp-rec-dec> ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
+compOrRecDec :: Parser Token
+compOrRecDec = do
+    keyword <- chars "data"
+    name <- ident
+    lpar <- char '('
+    -- [ <expr> { ',' <expr> } ]
+    {-firstExpr <- expr
+    nextExprs <- multiple $ step Expr [ char ',', expr ]
+                <|> RawToken UndefToken ""
+    let exprList =  if undefToken nextExprs then expr else
+                        combine firstExpr nextExprs-}
+    rpar <- char ')'
+    return $
+        combineMany CompOrRecDec [ keyword, name, lpar, {-exprList,-} rpar ]
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
