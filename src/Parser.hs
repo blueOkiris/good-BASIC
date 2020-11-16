@@ -1,7 +1,9 @@
 module Parser   ( parse, digit, alpha, char, anyChar, anyCharExcept
-                , multiple, selectFrom
-                , Token(..), TokenType(..) ) where
+                , multiple, selectFrom, doParsers
+                , Token(..), TokenType(..)
+                , Parser, ParseResult ) where
 
+import Debug.Trace(trace)
 import Data.Char(isDigit, isAlpha)
 
 data TokenType =    Module          | Import        | Export        |
@@ -16,7 +18,8 @@ data TokenType =    Module          | Import        | Export        |
                     Factor          | MemberAccess  | FuncCall      |
                     Lambda          | CompOrRecDec  | Ident         |
                     Decimal         | IntegerType   | Str           |
-                    Character       | Digit         | NoToken
+                    Character       | Digit         | UndefToken    |
+                    NoToken
                     deriving(Eq, Show)
 data Token =    RawToke TokenType String | CompToke TokenType String [Token]
                 deriving(Eq, Show)
@@ -92,13 +95,33 @@ multipleCore success tokType result parserFunc input
 
 selectFrom :: [Parser] -> (String -> ParseResult)
 selectFrom options input =
-    selectFromCore 0 options input
+    selectFromCore options input
 
-selectFromCore :: Int -> [Parser] -> (String -> ParseResult)
-selectFromCore index options input
-    | index == length options = (RawToke NoToken "", input)
+selectFromCore :: [Parser] -> (String -> ParseResult)
+selectFromCore options input
+    | null options = (RawToke NoToken "", input)
     | resultType /= NoToken = result
-    | otherwise = selectFromCore (index + 1) options input
+    | otherwise = selectFromCore (drop 1 options) input
     where
-        result = parse (options !! index) input
+        result = parse (head options) input
         resultType = tokenType $ fst result
+
+doParsers :: [Parser] -> TokenType -> (String -> ParseResult)
+doParsers steps tokType input =
+    doParsersCore input "" [] steps tokType input
+
+doParsersCore ::
+    String -> String -> [Token] -> [Parser] -> TokenType ->
+        (String -> ParseResult)
+doParsersCore currInput finalSource children steps tokType input
+    | resultType == NoToken = (RawToke NoToken "", input)
+    | length steps == 1 =
+        (CompToke tokType newFinalSource newChildren, newCurrInput)
+    | otherwise = doParsersCore
+        newCurrInput newFinalSource newChildren (drop 1 steps) tokType input
+    where
+        result = parse (head steps) currInput
+        resultType = tokenType $ fst result
+        newCurrInput = snd result
+        newFinalSource = finalSource ++ tokenSource (fst result)
+        newChildren = children ++ [ fst result ]
