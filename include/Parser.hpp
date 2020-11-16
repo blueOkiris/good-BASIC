@@ -17,7 +17,18 @@ namespace good_basic {
     }
 
     namespace parser {
-        using ParseResult = std::pair<std::string, std::string>;
+        enum class TokenType {
+            Module, Import, Export, Implement, IdentList,
+            Definition, FuncDef, TypeArgList, TypeName, CompDef, RecDef,
+            Statement, Declaration, Assignment, Return,
+            Expr, Product, Summation, Shift, Inequality, Equality, MaskOff,
+            Exclusive, MaskOn, Conjunction, Option, Term,
+            Factor, MemberAccess, FuncCall, Lambda, CompOrRecDec,
+            Ident, Float, Int, String, Character,
+            None
+        };
+        using Token = std::pair<TokenType, std::string>;
+        using ParseResult = std::pair<Token, std::string>;
         using Parser = std::function<ParseResult(const std::string&)>;
 
         inline ParseResult parse(

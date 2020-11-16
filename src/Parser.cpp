@@ -11,34 +11,45 @@ using namespace parser;
 
 const Parser parser::digit = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isDigit(input[0])) {
-        return ParseResult({ "", input });
+        return ParseResult({ { TokenType::None, "" }, input });
     } else {
-        return ParseResult({ input.substr(0, 1), input.substr(1) });
+        return ParseResult(
+            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+        );
     }
 };
 
 const Parser parser::alpha = [](const std::string& input) {
     if(input.length() < 1 || !parser_helpers::isAlpha(input[0])) {
-        return ParseResult({ "", input });
+        return ParseResult({ { TokenType::None, "" }, input });
     } else {
-        return ParseResult({ input.substr(0, 1), input.substr(1) });
+        return ParseResult(
+            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+        );
     }
 };
 
 const Parser parser::anyChar = [](const std::string& input) {
     if(input.length() < 1) {
-        return ParseResult({ "", input });
+        return ParseResult({ { TokenType::None, "" }, input });
     } else {
-        return ParseResult({ input.substr(0, 1), input.substr(1) });
+        return ParseResult(
+            { { TokenType::Character, input.substr(0, 1) }, input.substr(1) }
+        );
     }
 };
 
 Parser parser::character(const char c) {
     return [c](const std::string& input) {
         if(input.length() < 1 || input[0] != c) {
-            return ParseResult({ "", input });
+            return ParseResult({ { TokenType::None, "" }, input });
         } else {
-            return ParseResult({ input.substr(0, 1), input.substr(1) });
+            return ParseResult(
+                {
+                    { TokenType::Character, input.substr(0, 1) },
+                    input.substr(1)
+                }
+            );
         }
     };
 }
@@ -46,14 +57,19 @@ Parser parser::character(const char c) {
 Parser parser::anyCharExcept(const std::vector<char>& options) {
     return [options](const std::string& input) {
         if(input.length() < 1) {
-            return ParseResult({ "", input });
+            return ParseResult({ { TokenType::None, "" }, input });
         } else {
             for(const char c : options) {
                 if(input[0] == c) {
-                    return ParseResult({ "", input });
+                    return ParseResult({ { TokenType::None, "" }, input });
                 }
             }
-            return ParseResult({ input.substr(0, 1), input.substr(1) });
+            return ParseResult(
+                {
+                    { TokenType::Character, input.substr(0, 1) },
+                    input.substr(1)
+                }
+            );
         }
     };
 }
@@ -62,18 +78,19 @@ Parser parser::multiple(const Parser& parserFunc) {
     return [parserFunc](const std::string& input) {
         std::stringstream success;
         auto result = parse(parserFunc, input);
-        while(result.first != "") {
-            success << result.first;
+        TokenType type = result.first.first;
+        while(result.first.first != TokenType::None) {
+            success << result.first.second;
             result = parse(parserFunc, result.second);
         }
-        return ParseResult({ success.str(), result.second });
+        return ParseResult({ { type, success.str() }, result.second });
     };
 }
 
 Parser parser::either(const Parser& parser1, const Parser& parser2) {
     return [parser1, parser2](const std::string& input) {
         const auto try1 = parse(parser1, input);
-        if(try1.first == "") {
+        if(try1.first.first == TokenType::None) {
             return parse(parser2, input);
         } else {
             return try1;
@@ -85,11 +102,11 @@ Parser parser::selectFrom(const std::vector<Parser>& options) {
     return [options](const std::string& input) {
         for(const auto& option : options) {
             const auto attempt = parse(option, input);
-            if(attempt.first != "") {
+            if(attempt.first.first != TokenType::None) {
                 return attempt;
             }
         }
-        return ParseResult({ "", input });
+        return ParseResult({ { TokenType::None, "" }, input });
     };
 }
 
@@ -97,15 +114,17 @@ Parser parser::doParsers(const std::vector<Parser>& steps) {
     return [steps](const std::string& input) {
         auto currInput = input;
         std::stringstream finalParse;
+        TokenType type = TokenType::None;
         for(const auto& parserFunc : steps) {
             const auto result = parse(parserFunc, currInput);
-            if(result.first == "") {
-                return ParseResult({ "", input });
+            if(result.first.first == TokenType::None) {
+                return ParseResult({ { TokenType::None, "" }, input });
             }
-            finalParse << result.first;
+            finalParse << result.first.second;
+            type = result.first.first;
             currInput = result.second;
         }
-        return ParseResult({ finalParse.str(), currInput });
+        return ParseResult({ { type, finalParse.str() }, currInput });
     };
 }
 
