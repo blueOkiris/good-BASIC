@@ -176,8 +176,8 @@ const Parser parser::ident = [](const std::string &input) {
 const Parser parser::factor = selectFrom(
     {
         ident, decimal, integer, str,
-        lambda, compOrRecDecl,
+        /*lambda, compOrRecDecl,
         memberAccess, funcCall,
-        doParsers({ character('{'), expr, character('}') })
+        doParsers({ character('{'), expr, character('}') })*/
     }
 );
