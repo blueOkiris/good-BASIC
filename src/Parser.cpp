@@ -41,10 +41,14 @@ Token Token::pair(const Token& a, const Token& b, const TokenType compType) {
     }
 }
 
+SelectFrom::SelectFrom(const std::vector<std::shared_ptr<Parser>>& options) :
+        _options(options) {
+}
+
 ParserResult SelectFrom::parse(const std::string& input) const {
-    for(const auto& parser : options) {
+    for(const auto& parser : _options) {
         try {
-            const auto token = parser.parse(input);
+            const auto token = parser->parse(input);
             return token;
         } catch(const UnexpectedTokenException& ute) {
             continue;
@@ -55,8 +59,8 @@ ParserResult SelectFrom::parse(const std::string& input) const {
 
 std::vector<TokenType> SelectFrom::type() const {
     std::vector<TokenType> typeList;
-    for(const auto& parser : options) {
-        const auto types = parser.type();
+    for(const auto& parser : _options) {
+        const auto types = parser->type();
         for(const auto& type : types) {
             typeList.push_back(type);
         }
@@ -64,11 +68,17 @@ std::vector<TokenType> SelectFrom::type() const {
     return typeList;
 }
 
+CreateFrom::CreateFrom(
+        const std::vector<std::shared_ptr<Parser>>& steps,
+        const TokenType resultType) :
+        _steps(steps), _resultType(resultType) {
+}
+
 ParserResult CreateFrom::parse(const std::string& input) const {
     auto currInp = input;
     Token finalToken = { TokenType::None, "", std::vector<Token>() };
-    for(const auto& parser : steps) {
-        const auto result = parser.parse(currInp);
+    for(const auto& parser : _steps) {
+        const auto result = parser->parse(currInp);
         if(finalToken.type == TokenType::None) {
             finalToken = result.first;
         } else {
@@ -76,19 +86,22 @@ ParserResult CreateFrom::parse(const std::string& input) const {
         }
         currInp = result.second;
     }
-    return { finalToken, currInp };
+    return { { _resultType, finalToken.source, finalToken.children }, currInp };
 }
 
 std::vector<TokenType> CreateFrom::type() const {
-    return { resultType };
+    return { _resultType };
+}
+
+Many::Many(const std::shared_ptr<Parser>& what) : _what(what) {
 }
 
 std::vector<TokenType> Many::type() const {
-    return what->type();
+    return _what->type();
 }
 
 ParserResult Many::parse(const std::string& input) const {
-    auto result = what->parse(input); // Outside of loop so it fails if none
+    auto result = _what->parse(input); // Outside of loop so it fails if none
     
     auto finalToke = result.first;
     auto currInp = result.second;
@@ -96,7 +109,7 @@ ParserResult Many::parse(const std::string& input) const {
     bool quit = false;
     while(!quit) {
         try {
-            result = what->parse(currInp);
+            result = _what->parse(currInp);
             finalToke = Token::pair(finalToke, result.first);
             currInp = result.second;
         } catch(const UnexpectedTokenException& ute) {
@@ -107,12 +120,15 @@ ParserResult Many::parse(const std::string& input) const {
     return { finalToke, currInp };
 }
 
+Char::Char(const char c) : _c(c) {
+}
+
 std::vector<TokenType> Char::type() const {
     return { TokenType::Character };
 }
 
 ParserResult Char::parse(const std::string& input) const {
-    if(input.length() < 1 || input[0] != c) {
+    if(input.length() < 1 || input[0] != _c) {
         throw UnexpectedTokenException(type());
     }
     return {
