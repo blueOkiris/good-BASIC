@@ -5,8 +5,21 @@
 #include <exception>
 
 namespace good_basic {
+    enum class TokenType {
+        Module, Import, Export, Implement, IdentList,
+        Definition, FuncDef, TypeArgList, TypeName, CompDef, RecDef,
+        Statement, Declaration, Assignment, Return,
+        Expr, Product, Summation, Shift, Inequality, Equality, MaskOff,
+        Exclusive, MaskOn, Conjunction, Option, Term,
+        Factor, MemberAccess, FuncCall, Lambda, CompOrRecDec,
+        Ident, Float, Int, String, Character,
+        None
+    };
     struct Token {
-        
+        const TokenType type;
+        const std::string source;
+        const std::vector<Token> children;
+        std::string str() const;
     };
     
     typedef std::pair<Token, std::string> ParserResult;
