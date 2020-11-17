@@ -18,12 +18,12 @@ clean :
 	rm -rf $(OBJNAME)
 
 # Auto generated options
-CPPSRC :=   $(wildcard $(SRCFLDR)/*.cpp)
-HFILES :=   $(wildcard $(INCFLDR)/*.hpp)
+CPPSRC :=   $(wildcard $(SRCFLDR)/*.cpp) $(wildcard $(SRCFLDR)/*/*.cpp)
+HFILES :=   $(wildcard $(INCFLDR)/*.hpp) $(wildcard $(INCFLDR)/*/*.hpp)
 OBJS :=     $(subst .cpp,.cpp.o,$(subst $(SRCFLDR),$(OBJFLDR),$(CPPSRC)))
 
 $(OBJFLDR)/%.cpp.o : $(SRCFLDR)/%.cpp $(HFILES)
-	mkdir -p $(OBJFLDR)
+	mkdir -p $(dir $@)
 	$(CPPC) $(CPPFLAGS) -I$(INCFLDR) -o $@ -c $<
 
 # Main targets

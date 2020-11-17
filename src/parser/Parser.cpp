@@ -3,9 +3,10 @@
 #include <string>
 #include <sstream>
 #include <memory>
-#include <Parser.hpp>
+#include <parser/Parser.hpp>
 
 using namespace good_basic;
+using namespace parser;
 
 std::string Token::str() const {
     std::stringstream output;
@@ -168,9 +169,9 @@ inline std::string typesToExceptionStr(const std::vector<TokenType>& expTypes) {
 }
 
 UnexpectedTokenException::UnexpectedTokenException(
-        const std::vector<TokenType>& expectedTypes) :
+        const std::vector<TokenType>& expecTypes) :
         ParserException(
             "Parser Exception: Unexpected token. Expected tokens: "
-            + typesToExceptionStr(expectedTypes)
+            + typesToExceptionStr(expecTypes)
         ) {
 }

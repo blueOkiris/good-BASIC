@@ -1,9 +1,9 @@
-#include <ParserTests.hpp>
+#include <tests/ParserTests.hpp>
 
 using namespace good_basic;
 
 int main(int argc, char **args) {
-    //tests::manyAs();
-    tests::digits();
+    //parser::tests::manyAs();
+    parser::tests::digits();
     return 0;
 }
