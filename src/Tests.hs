@@ -72,7 +72,7 @@ weakFuncCall = do
     name <- ident
     s2 <- multiple wspace
     e <- expr
-    return $ combine keyword $ combine s $ combine name $ combine s2 e    
+    return $ combine [ keyword, s, name, s2, e ] 
 
 testWeakExpr :: IO()
 testWeakExpr = do

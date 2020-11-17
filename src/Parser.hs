@@ -30,7 +30,8 @@ instance Alternative Parser where
                 (a:_) -> [ a ]
     
 class Parsable a where
-    combine :: a -> a -> a
+    pair :: a -> a -> a
+    combine :: [a] -> a
     fromChar :: Char -> a
     getSource :: a -> String
     
@@ -71,14 +72,14 @@ chars str
     | otherwise = do
         first <- char $ head str
         next <- chars $ drop 1 str
-        return $ combine first next
+        return $ pair first next
 
 multiple :: Parsable a => Parser a -> Parser a
 multiple parser =
     (do
         first <- parser
         next <- multiple parser
-        return $ combine first next)
+        return $ pair first next)
     <|> parser
 
 from :: Parsable a => [Parser a] -> Parser a
@@ -88,4 +89,4 @@ from steps
     | otherwise = do
         first <- head steps
         next <- from (drop 1 steps)
-        return $ combine first next
+        return $ pair first next

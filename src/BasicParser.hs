@@ -113,7 +113,7 @@ memberAcc = do
     name <- ident
     colon <- char ':'
     next <- memberAcc <|> ident
-    return (combine name $ combine colon next) { tokenType = MemberAccess }
+    return (combine [ name, colon, next ]) { tokenType = MemberAccess }
 
 -- <func-call> ::= 'call' <ident> { <expr> }
 funcCall :: Parser Token
@@ -124,7 +124,7 @@ funcCall = do
     sp2 <- multiple wspace <|> do return $ RawToken Character " "
     exprs <- multiple expr
     return
-        (combine keyword $ combine sp1 $ combine name $ combine sp2 exprs)
+        (combine [ keyword, sp1, name, sp2, exprs ])
             { tokenType = FuncCall }
 
 {-
@@ -145,10 +145,9 @@ lambda = do
     --stmts <- multiple statement
     endKey <- chars "end"
     return 
-        (combine keyword $ combine sp1 $
-            combine lpar $ combine sp2 {-$ combine args-} $ combine rpar $
-                combine sp3 {-$ combine tp $ combine stmts-} endKey)
-                    { tokenType = Lambda }
+        (combine    [ keyword, sp1, lpar, sp2, {-args,-} rpar, sp3{-, tp-}
+                    , {-stmts,-} endKey ])
+            { tokenType = Lambda }
 
 -- <comp-rec-dec> ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
 compOrRecDec :: Parser Token
@@ -161,9 +160,8 @@ compOrRecDec = do
     exprList <- multiple expr
     rpar <- char ')'
     return
-        (combine keyword $ combine sp1 $ combine name $ combine sp2 $
-            combine lpar $ combine exprList rpar)
-                { tokenType = CompOrRecDec }
+        (combine [ keyword, sp1, name, sp2, lpar, exprList, rpar ])
+            { tokenType = CompOrRecDec }
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
@@ -179,15 +177,15 @@ decimal = do
         sign <- getSign
         natNum <- getNatNum
         expon <- getExpon
-        return (combine sign $ combine natNum expon) { tokenType = Decimal }
+        return (combine [ sign, natNum, expon ]) { tokenType = Decimal }
     <|> do
         sign <- getSign
         natNum <- getNatNum
-        return (combine sign natNum) { tokenType = Decimal }
+        return (pair sign natNum) { tokenType = Decimal }
     <|> do
         natNum <- getNatNum
         expon <- getExpon
-        return (combine natNum expon) { tokenType = Decimal }
+        return (pair natNum expon) { tokenType = Decimal }
     <|> do
         natNum <- getNatNum
         return natNum { tokenType = Decimal }
@@ -204,7 +202,7 @@ integer :: Parser Token
 integer = do
         sign <- chars "-" <|> chars "+"
         natNum <- multiple digit
-        return $ (combine sign natNum) { tokenType = IntegerType }
+        return $ (pair sign natNum) { tokenType = IntegerType }
     <|> do
         natNum <- multiple digit
         return natNum { tokenType = IntegerType }
@@ -217,5 +215,5 @@ string =
         startQuote <- char '\''
         midChars <- multiple (from [ chars "\\", anyChar ] <|> anyExcept "'\\")
         endQuote <- char '\''
-        return (combine startQuote $ combine midChars endQuote)
+        return (combine [ startQuote, midChars, endQuote ])
             { tokenType = Str }
