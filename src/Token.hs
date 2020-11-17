@@ -1,4 +1,6 @@
-module Token(Token(..), TokenType(..), combine, combineMany, undefToken) where
+module Token(Token(..), TokenType(..)) where
+    
+import Parser(Parsable(..))
 
 data TokenType =    Module          | Import        | Export        |
                     Implement       | IdentList     | Definition    |
@@ -20,18 +22,13 @@ data Token = RawToken   { tokenType :: TokenType
                         , source    :: String
                         , children  :: [Token] }
             deriving(Eq, Show)
-            
-combine :: Token -> Token -> Token
-combine (RawToken t1 s1) (RawToken t2 s2)
-    | t1 /= t2 =
-        CompToken UndefToken (s1 ++ s2) [ RawToken t1 s1, RawToken t2 s2 ]
-    | otherwise = RawToken t1 (s1 ++ s2)
-combine tok1 tok2 =
-    CompToken UndefToken (source tok1 ++ source tok2) [ tok1, tok2 ]
 
-combineMany :: TokenType -> [Token] -> Token
-combineMany tokType toks =
-    CompToken tokType (concatMap source toks) (concatMap (\t -> [t]) toks)
-
-undefToken :: Token -> Bool
-undefToken tok = tokenType tok == UndefToken
+instance Parsable Token where
+    combine (RawToken t1 s1) (RawToken t2 s2)
+        | t1 /= t2 =
+            CompToken UndefToken (s1 ++ s2) [ RawToken t1 s1, RawToken t2 s2 ]
+        | otherwise = RawToken t1 (s1 ++ s2)
+    combine tok1 tok2 =
+        CompToken UndefToken (source tok1 ++ source tok2) [ tok1, tok2 ]
+    fromChar c = RawToken Character [ c ]
+    getSource tok = source tok

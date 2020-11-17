@@ -1,44 +1,38 @@
 module Tests where
 
+import Control.Applicative(Alternative(..))
 import Parser
 import BasicParser
+import Token
 
-testDigit :: IO()
-testDigit = do
-    putStr "Type value to parse a digit from ('quit' to quit): "
+testChars :: IO()
+testChars = do
+    putStr "Type value to parse characters from ('quit' to quit): "
     input <- getLine
-    let parsedDigit = parse digit input
-    print parsedDigit
-    if input == "quit" then putStrLn "Done." else testDigit
+    let parsed = parse (multiple anyChar) input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testChars
 
 testDigits :: IO()
 testDigits = do
     putStr "Type value to parse digits from ('quit' to quit): "
     input <- getLine
-    let digits = parse (multiple digit) input
-    print digits
-    if input == "quit" then putStrLn "Done." else testDigits
+    let parsed = parse (multiple digit) input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testDigits
 
-testDecimal :: IO()
-testDecimal = do
-    putStr "Type value to parse a float from ('quit' to quit): "
+testAlternate :: IO()
+testAlternate = do
+    putStr "Type value to parse digits then alphas from ('quit' to quit): "
     input <- getLine
-    let number = parse decimal input
-    print number
-    if input == "quit" then putStrLn "Done." else testDecimal
+    let parsed = parse (from [ multiple digit, multiple alpha ]) input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testAlternate
 
-testStrings :: IO()
-testStrings = do
-    putStr "Type value to parse a string from ('quit' to quit): "
+testBasics :: IO()
+testBasics = do
+    putStr "Type value to parse basic types from ('quit' to quit): "
     input <- getLine
-    let str = parse string input
-    print str
-    if input == "quit" then putStrLn "Done." else testStrings
-
-testExpr :: IO()
-testExpr = do
-    putStr "Type value to parse an expression from ('quit' to quit): "
-    input <- getLine
-    let str = parse expr input
-    print str
-    if input == "quit" then putStrLn "Done." else testExpr
+    let parsed = parse (ident <|> decimal <|> integer <|> string) input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testBasics

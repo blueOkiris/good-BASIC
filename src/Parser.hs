@@ -1,14 +1,16 @@
-module Parser   ( Parser(..), failure, multiple, from, skipWs
-                , anyChar, char, chars, alpha, digit, anyCharExcept) where
-
+module Parser   ( Parser(..), Parsable(..)
+                , failure, anyChar, multiple, from, anyExcept
+                , char, alpha, digit, chars ) where
+    
 import Control.Monad(ap, liftM)
 import Control.Applicative(Alternative(..))
 import Data.Char(isAlpha, isDigit, isSpace)
-import Token
 
-newtype Parser a = Parser { parse :: String -> [(a, String)] }
+newtype Parser a = Parser   { parse :: String -> [(a, String)] }
 
 instance Monad Parser where
+    -- do a b means a >>= b which is like a >> \s -> b
+    -- Parser a -> (a -> Parser b) -> Parser b
     (>>=) psr1 tokToPsr2 =
         Parser $ \input ->
             let rslt1 = parse psr1 input in
@@ -27,61 +29,60 @@ instance Alternative Parser where
                 [] -> take 1 (parse psr2 input)
                 (a:_) -> [ a ]
     
+class Parsable a where
+    combine :: a -> a -> a
+    fromChar :: Char -> a
+    getSource :: a -> String
+    
 failure :: Parser a
 failure = Parser $ const []
 
-from :: TokenType -> [Parser Token] -> Parser Token
-tokType `from` steps
-    | null steps = failure
-    | length steps == 1 = head steps
-    | otherwise = do
-        currStep <- head steps
-        nextSteps <- tokType `from` (drop 1 steps)
-        return $ (combine currStep nextSteps) { tokenType = tokType }
-
-multiple :: Parser Token -> Parser Token
-multiple parser = do
-    first <- parser
-    multiple <- multiple parser
-    return $ combine first multiple
-    <|> parser
+anyChar :: Parsable a => Parser a
+anyChar = Parser $ \inp -> case inp of "" -> []; (c:cs) -> [(fromChar c,cs)]
     
-skipWs :: Parser Token
-skipWs = Parser wsSkipFunc
-    
-wsSkipFunc :: String -> [ (Token, String) ]     
-wsSkipFunc input
-    | null input = [ (RawToken UndefToken "", "") ]
-    | isSpace (head input) = wsSkipFunc (drop 1 input)
-    | otherwise = [ (RawToken UndefToken " ", input) ]
-
-anyChar :: Parser Token
-anyChar =
-    Parser $ \input ->
-        [ (RawToken Character [ head input ], drop 1 input) | not $ null input ]
-
-condChar :: (Char -> Bool) -> Parser Token
+condChar :: Parsable a => (Char -> Bool) -> Parser a
 condChar check = do
-    c <- anyChar
-    if check (head $ source c) then return c else failure
-
-char :: Char -> Parser Token
+    tok <- anyChar
+    let src = getSource tok
+    if null src || not (check $ head src) then
+        failure
+    else
+        return tok
+    
+anyExcept :: Parsable a => [Char] -> Parser a
+anyExcept str = condChar (`notElem` str)
+    
+char :: Parsable a => Char -> Parser a
 char c = condChar (== c)
 
-chars :: [Char] -> Parser Token
-chars str
-    | null str = failure
-    | length str == 1 = condChar (== head str)
-    | otherwise = do
-        curr <- condChar (== head str)
-        next <- chars (drop 1 str)
-        return $ combine curr next
-
-alpha :: Parser Token
+alpha :: Parsable a => Parser a
 alpha = condChar isAlpha
 
-digit :: Parser Token
-digit = do character <- condChar isDigit; return character { tokenType = Digit }
+digit :: Parsable a => Parser a
+digit = condChar isDigit
 
-anyCharExcept :: [Char] -> Parser Token
-anyCharExcept set = condChar (`notElem` set)
+chars :: Parsable a => [Char] -> Parser a
+chars [] = failure
+chars str
+    | length str == 1 = char (head str)
+    | otherwise = do
+        first <- char $ head str
+        next <- chars $ drop 1 str
+        return $ combine first next
+
+multiple :: Parsable a => Parser a -> Parser a
+multiple parser =
+    (do
+        first <- parser
+        next <- multiple parser
+        return $ combine first next)
+    <|> parser
+
+from :: Parsable a => [Parser a] -> Parser a
+from [] = failure
+from steps
+    | length steps == 1 = head steps
+    | otherwise = do
+        first <- head steps
+        next <- from (drop 1 steps)
+        return $ combine first next
