@@ -21,10 +21,25 @@ std::string Token::str() const {
     return output.str();
 }
 
+Token Token::pair(const Token& a, const Token& b) {
+    return { TokenType::None, "", std::vector<Token>() };
+}
+
 ParserResult SelectFrom::parse(const std::string& input) const {
     return { { TokenType::None, "", std::vector<Token>() }, "" };
 }
 
 ParserResult CreateFrom::parse(const std::string& input) const {
-    return { { TokenType::None, "", std::vector<Token>() }, "" };
+    auto currInp = input;
+    Token finalToken = { TokenType::None, "", std::vector<Token>() };
+    for(const auto& parser : steps) {
+        const auto result = parser.parse(currInp);
+        if(finalToken.type == TokenType::None) {
+            finalToken = result.first;
+        } else {
+            finalToken = Token::pair(finalToken, result.first);
+        }
+        currInp = currInp.substr(result.second.length());
+    }
+    return { finalToken, currInp };
 }

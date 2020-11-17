@@ -16,9 +16,11 @@ namespace good_basic {
         None
     };
     struct Token {
-        const TokenType type;
-        const std::string source;
-        const std::vector<Token> children;
+        TokenType type;
+        std::string source;
+        std::vector<Token> children;
+        
+        static Token pair(const Token& a, const Token& b);
         std::string str() const;
     };
     
