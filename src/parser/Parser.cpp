@@ -42,7 +42,7 @@ Token Token::pair(const Token& a, const Token& b, const TokenType compType) {
     }
 }
 
-SelectFrom::SelectFrom(const std::vector<std::shared_ptr<Parser>>& options) :
+SelectFrom::SelectFrom(const std::vector<ParserPtr>& options) :
         _options(options) {
 }
 
@@ -70,7 +70,7 @@ std::vector<TokenType> SelectFrom::type() const {
 }
 
 CreateFrom::CreateFrom(
-        const std::vector<std::shared_ptr<Parser>>& steps,
+        const std::vector<ParserPtr>& steps,
         const TokenType resultType) :
         _steps(steps), _resultType(resultType) {
 }
@@ -94,7 +94,7 @@ std::vector<TokenType> CreateFrom::type() const {
     return { _resultType };
 }
 
-Many::Many(const std::shared_ptr<Parser>& what) : _what(what) {
+Many::Many(const ParserPtr& what) : _what(what) {
 }
 
 std::vector<TokenType> Many::type() const {

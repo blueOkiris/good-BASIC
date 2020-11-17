@@ -36,25 +36,30 @@ namespace good_basic {
                 virtual std::vector<TokenType> type() const = 0;
                 virtual ParserResult parse(const std::string& input) const = 0;
         };
+        typedef std::shared_ptr<Parser> ParserPtr;
+        template<typename T>
+        inline std::shared_ptr<T> ptr(const T& obj) {
+            return std::make_shared<T>(obj);
+        }
 
         class SelectFrom : public Parser {
             private:
-                std::vector<std::shared_ptr<Parser>> _options;
+                std::vector<ParserPtr> _options;
                 
             public:
-                SelectFrom(const std::vector<std::shared_ptr<Parser>>& options);
+                SelectFrom(const std::vector<ParserPtr>& options);
                 std::vector<TokenType> type() const override;
                 ParserResult parse(const std::string& input) const override;
         };
 
         class CreateFrom : public Parser {
             private:
-                std::vector<std::shared_ptr<Parser>> _steps;
+                std::vector<ParserPtr> _steps;
                 TokenType _resultType;
                 
             public:
                 CreateFrom(
-                    const std::vector<std::shared_ptr<Parser>>& steps,
+                    const std::vector<ParserPtr>& steps,
                     const TokenType resultType
                 );
                 std::vector<TokenType> type() const override;
@@ -63,10 +68,10 @@ namespace good_basic {
         
         class Many : public Parser {
             private:
-                std::shared_ptr<Parser> _what;
+                ParserPtr _what;
                 
             public:
-                Many(const std::shared_ptr<Parser>& what);
+                Many(const ParserPtr& what);
                 std::vector<TokenType> type() const override;
                 ParserResult parse(const std::string& input) const override;
         };
