@@ -20,22 +20,42 @@ namespace good_basic {
         std::string source;
         std::vector<Token> children;
         
-        static Token pair(const Token& a, const Token& b);
+        static Token pair(
+            const Token& a, const Token& b,
+            const TokenType compType = TokenType::None
+        );
         std::string str() const;
     };
     
     typedef std::pair<Token, std::string> ParserResult;
     struct Parser {
+        virtual std::vector<TokenType> type() const = 0;
         virtual ParserResult parse(const std::string& input) const = 0;
     };
 
     struct SelectFrom : public Parser {
-        const std::vector<Parser> options;
+        std::vector<Parser> options;
+        std::vector<TokenType> type() const override;
         ParserResult parse(const std::string& input) const override;
     };
 
     struct CreateFrom : public Parser {
-        const std::vector<Parser> steps;
+        std::vector<Parser> steps;
+        TokenType resultType;
+        std::vector<TokenType> type() const override;
         ParserResult parse(const std::string& input) const override;
+    };
+    
+    struct ParserException : public std::exception {
+        private:
+            const std::string _message;
+        
+        public:
+            ParserException(const std::string& message);
+            const char* what() const throw();
+    };
+    
+    struct UnexpectedTokenException : public ParserException {
+        UnexpectedTokenException(const std::vector<TokenType>& expectedTypes);
     };
 }
