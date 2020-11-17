@@ -38,7 +38,7 @@ namespace good_basic {
         };
         typedef std::shared_ptr<Parser> ParserPtr;
         template<typename T>
-        inline std::shared_ptr<T> sptr(const T& obj) {
+        inline ParserPtr sptr(const T& obj) {
             return std::make_shared<T>(obj);
         }
 
@@ -76,12 +76,29 @@ namespace good_basic {
                 ParserResult parse(const std::string& input) const override;
         };
         
+        class AsType : public Parser {
+            private:
+                ParserPtr _what;
+                TokenType _newType;
+                
+            public:
+                AsType(const ParserPtr& what, const TokenType newType);
+                std::vector<TokenType> type() const override;
+                ParserResult parse(const std::string& input) const override;
+        };
+        
         class Char : public Parser {
             private:
                 char _c;
                 
             public:
                 Char(const char c);
+                std::vector<TokenType> type() const override;
+                ParserResult parse(const std::string& input) const override;
+        };
+        
+        class Alpha : public Parser {
+            public:
                 std::vector<TokenType> type() const override;
                 ParserResult parse(const std::string& input) const override;
         };

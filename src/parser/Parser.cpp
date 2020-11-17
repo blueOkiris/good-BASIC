@@ -121,6 +121,21 @@ ParserResult Many::parse(const std::string& input) const {
     return { finalToke, currInp };
 }
 
+AsType::AsType(const ParserPtr& what, const TokenType newType) :
+        _what(what), _newType(newType) {
+}
+
+std::vector<TokenType> AsType::type() const {
+    return _what->type();
+}
+
+ParserResult AsType::parse(const std::string& input) const {
+    auto result = _what->parse(input);
+    return {
+        { _newType, result.first.source, result.first.children }, result.second
+    };
+}
+
 Char::Char(const char c) : _c(c) {
 }
 
@@ -148,6 +163,22 @@ ParserResult Digit::parse(const std::string& input) const {
     }
     return {
         { TokenType::Digit, input.substr(0, 1), std::vector<Token>() },
+        input.substr(1) 
+    };
+}
+
+std::vector<TokenType> Alpha::type() const {
+    return { TokenType::Character };
+}
+
+ParserResult Alpha::parse(const std::string& input) const {
+    if(input.length() < 1
+            || ((input[0] < 'A' || input[0] > 'Z')
+                && (input[0] < 'a' || input[0] > 'z'))) {
+        throw UnexpectedTokenException(type());
+    }
+    return {
+        { TokenType::Character, input.substr(0, 1), std::vector<Token>() },
         input.substr(1) 
     };
 }
