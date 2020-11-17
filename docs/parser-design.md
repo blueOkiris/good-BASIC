@@ -76,3 +76,11 @@ struct MemberAccess : public Parser {
 etc.
 
 I kinda want to do this in C# (don't worry performance would be there) as the header system is kind of annoying for this many repetitive things, but I also don't want to get stuck in the dotnet core system either, but eh. I'll just do the C++
+
+## Switching to C#
+
+The lack of true interfaces in C++ low-key sucks. I want to be able to pass a child in as a parent, not a pointer to a child in as a pointer to a parent.
+
+Time to start over again. This time in C# (though using dotnet core native compilation)
+
+It will basically be what I was already doing in the new C++ version
