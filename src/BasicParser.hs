@@ -133,7 +133,7 @@ compOrRecDec = do
     -- [ <expr> { ',' <expr> } ]
     firstExpr <- expr
     nextExprs <- multiple $ Expr `from` [ chars ",", expr ]
-                <|> do return $ RawToken UndefToken ""
+                <|> do return $ RawToken Node ""
     let exprList =  if undefToken nextExprs then firstExpr else
                         combine firstExpr nextExprs
     

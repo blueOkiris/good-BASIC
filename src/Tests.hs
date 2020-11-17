@@ -36,3 +36,19 @@ testBasics = do
     let parsed = parse (ident <|> decimal <|> integer <|> string) input
     print (parsed :: [(Token, String)])
     if input == "quit"  then putStrLn "Done." else testBasics
+
+weakFactor :: Parser Token
+weakFactor =
+    ident <|> decimal <|> integer <|> string
+    <|> do
+        fac <- from [ char '(', weakFactor, char ')' ]
+        return fac { tokenType = Factor }
+
+testWeakFactor :: IO()
+testWeakFactor = do
+    putStr "Type value to parse weak factor from ('quit' to quit): "
+    input <- getLine
+    let parsed = parse weakFactor input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testWeakFactor
+
