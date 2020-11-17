@@ -21,6 +21,9 @@ expr = do
     <|> do
         e <- from [ prod, chars "++" <|> chars "--" ]
         return e { tokenType = Expr }
+    <|> do
+        e <- from [ char '(', prod, char ')' ]
+        return e { tokenType = Expr }
     <|> prod
 
 -- <product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
@@ -116,9 +119,13 @@ memberAcc = do
 funcCall :: Parser Token
 funcCall = do
     keyword <- chars "call"
+    sp1 <- multiple wspace
     name <- ident
+    sp2 <- multiple wspace <|> do return $ RawToken Character " "
     exprs <- multiple expr
-    return (combine keyword $ combine name exprs) { tokenType = FuncCall }
+    return
+        (combine keyword $ combine sp1 $ combine name $ combine sp2 exprs)
+            { tokenType = FuncCall }
 
 {-
  - <lambda> ::= 'lambda' '(' [ <type-arg-list> ] ')' <type-name>
@@ -128,34 +135,35 @@ funcCall = do
 lambda :: Parser Token
 lambda = do
     keyword <- chars "lambda"
+    sp1 <- multiple wspace <|> do return $ RawToken Character " "
     lpar <- char '('
+    sp2 <- multiple wspace <|> do return $ RawToken Character " "
     --args <- typeArgList
     rpar <- char ')'
+    sp3 <- multiple wspace <|> do return $ RawToken Character " "
     --tp <- typeName
     --stmts <- multiple statement
     endKey <- chars "end"
     return 
-        (combine keyword $ combine lpar {-$ combine args-} $ combine rpar
-            {-$ combine tp $ combine stmts-} endKey) { tokenType = Lambda }
+        (combine keyword $ combine sp1 $
+            combine lpar $ combine sp2 {-$ combine args-} $ combine rpar $
+                combine sp3 {-$ combine tp $ combine stmts-} endKey)
+                    { tokenType = Lambda }
 
 -- <comp-rec-dec> ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
 compOrRecDec :: Parser Token
 compOrRecDec = do
     keyword <- chars "data"
+    sp1 <- multiple wspace
     name <- ident
+    sp2 <- multiple wspace <|> do return $ RawToken Character " "
     lpar <- char '('
-    
-    -- [ <expr> { ',' <expr> } ]
-    firstExpr <- expr
-    nextExprs <- multiple (from [ char ',', expr ])
-                <|> do return $ RawToken Node ""
-    let exprList =  if source nextExprs == "" then firstExpr else
-                        combine firstExpr nextExprs
-    
+    exprList <- multiple expr
     rpar <- char ')'
     return
-        (combine keyword $ combine name $ combine lpar $ combine exprList rpar)
-            { tokenType = CompOrRecDec }
+        (combine keyword $ combine sp1 $ combine name $ combine sp2 $
+            combine lpar $ combine exprList rpar)
+                { tokenType = CompOrRecDec }
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token

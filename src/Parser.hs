@@ -1,6 +1,6 @@
 module Parser   ( Parser(..), Parsable(..)
                 , failure, anyChar, multiple, from, anyExcept
-                , char, alpha, digit, chars ) where
+                , char, alpha, digit, chars, wspace ) where
     
 import Control.Monad(ap, liftM)
 import Control.Applicative(Alternative(..))
@@ -60,6 +60,9 @@ alpha = condChar isAlpha
 
 digit :: Parsable a => Parser a
 digit = condChar isDigit
+
+wspace :: Parsable a => Parser a
+wspace = condChar isSpace
 
 chars :: Parsable a => [Char] -> Parser a
 chars [] = failure

@@ -37,21 +37,6 @@ testBasics = do
     print (parsed :: [(Token, String)])
     if input == "quit"  then putStrLn "Done." else testBasics
 
-weakFactor :: Parser Token
-weakFactor =
-    ident <|> decimal <|> integer <|> string
-    <|> do
-        fac <- from [ char '(', weakFactor, char ')' ]
-        return fac { tokenType = Factor }
-
-testWeakFactor :: IO()
-testWeakFactor = do
-    putStr "Type value to parse weak factor from ('quit' to quit): "
-    input <- getLine
-    let parsed = parse weakFactor input
-    print (parsed :: [(Token, String)])
-    if input == "quit"  then putStrLn "Done." else testWeakFactor
-
 testExpr :: IO()
 testExpr = do
     putStr "Type value to parse expressions from ('quit' to quit): "
@@ -60,3 +45,39 @@ testExpr = do
     print (parsed :: [(Token, String)])
     if input == "quit"  then putStrLn "Done." else testExpr
 
+weakExpr :: Parser Token
+weakExpr = do
+        e <- from [ weakTerm, char '*' <|> char '/', weakTerm ]
+        return e
+    <|> weakTerm
+
+weakTerm :: Parser Token
+weakTerm = do
+        t <- from [ weakFactor, char '+' <|> char '-', weakFactor ]
+        return t
+    <|> weakFactor
+
+weakFactor :: Parser Token
+weakFactor =
+    weakFuncCall
+    <|> ident <|> decimal <|> integer <|> string
+    <|> do
+        fac <- from [ char '(', weakExpr, char ')' ]
+        return fac { tokenType = Factor }
+    
+weakFuncCall :: Parser Token
+weakFuncCall = do
+    keyword <- chars "call"
+    s <- multiple wspace
+    name <- ident
+    s2 <- multiple wspace
+    e <- expr
+    return $ combine keyword $ combine s $ combine name $ combine s2 e    
+
+testWeakExpr :: IO()
+testWeakExpr = do
+    putStr "Type value to parse weak expressions from ('quit' to quit): "
+    input <- getLine
+    let parsed = parse weakExpr input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testWeakExpr
