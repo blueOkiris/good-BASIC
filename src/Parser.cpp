@@ -137,6 +137,20 @@ ParserResult Char::parse(const std::string& input) const {
     };
 }
 
+std::vector<TokenType> Digit::type() const {
+    return { TokenType::Digit };
+}
+
+ParserResult Digit::parse(const std::string& input) const {
+    if(input.length() < 1 || (input[0] < '0' || input[0] > '9')) {
+        throw UnexpectedTokenException(type());
+    }
+    return {
+        { TokenType::Digit, input.substr(0, 1), std::vector<Token>() },
+        input.substr(1) 
+    };
+}
+
 ParserException::ParserException(const std::string& message) :
         _message(message) {
 }

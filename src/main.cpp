@@ -3,6 +3,7 @@
 using namespace good_basic;
 
 int main(int argc, char **args) {
-    tests::manyAs();
+    //tests::manyAs();
+    tests::digits();
     return 0;
 }

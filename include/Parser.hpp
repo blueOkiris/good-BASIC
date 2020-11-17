@@ -13,7 +13,7 @@ namespace good_basic {
         Expr, Product, Summation, Shift, Inequality, Equality, MaskOff,
         Exclusive, MaskOn, Conjunction, Option, Term,
         Factor, MemberAccess, FuncCall, Lambda, CompOrRecDec,
-        Ident, Float, Int, String, Character,
+        Ident, Float, Int, String, Character, Digit,
         None
     };
     struct Token {
@@ -75,6 +75,12 @@ namespace good_basic {
             
         public:
             Char(const char c);
+            std::vector<TokenType> type() const override;
+            ParserResult parse(const std::string& input) const override;
+    };
+    
+    class Digit : public Parser {
+        public:
             std::vector<TokenType> type() const override;
             ParserResult parse(const std::string& input) const override;
     };
