@@ -1,12 +1,9 @@
 ﻿using System;
 
-namespace good_BASIC
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
+namespace GoodBasic {
+    class Program {
+        static void Main(string[] args) {
+            Parser.Tests.Identifier();
         }
     }
 }
