@@ -31,6 +31,20 @@ namespace GoodBasic {
                     }
                 }
             }
+            
+            public static void Strs() {
+                string input = "";
+                while(input != "quit") {
+                    try {
+                        Console.Write("Enter strings ('quit' to quit'): ");
+                        input = Console.ReadLine();
+                        var result = new Str().Parse(input);
+                        Console.WriteLine("Parsed: {0}", result);
+                    } catch(UnexpectedTypeException ute) {
+                        Console.WriteLine(ute);
+                    }
+                }
+            }
         }
     }
 }

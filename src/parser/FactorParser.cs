@@ -95,5 +95,32 @@ namespace GoodBasic {
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Int };
         }
+        
+        // <string> ::= /'(\\.|[^\\'])*'/
+        class Str : Parser {
+            public (Token, string) Parse(string input) =>
+                new SelectFrom(new List<Parser> {
+                    new CreateFrom(
+                        new List<Parser> {
+                            new Char('\''),
+                            new Many(
+                                new SelectFrom(new List<Parser> {
+                                    new CreateFrom(
+                                        new List<Parser> {
+                                            new Char('\\'),
+                                            new AnyChar()
+                                        }, TokenType.Character
+                                    ), new AnyCharExcept("\\'")
+                                })
+                            ), new Char('\'')
+                        }, TokenType.String
+                    ), new CreateFrom(
+                        new List<Parser> { new Char('\''), new Char('\'') },
+                        TokenType.String
+                    )
+                }).Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.String };
+        }
     }
 }

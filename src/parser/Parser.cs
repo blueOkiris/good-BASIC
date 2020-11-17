@@ -137,6 +137,45 @@ namespace GoodBasic {
                 new List<TokenType> { TokenType.None };
         }
         
+        class AnyChar : Parser {
+            public (Token, string) Parse(string input) {
+                if(input.Length < 1) {
+                    throw new UnexpectedTypeException(Types());
+                } else {
+                    return (
+                        new Token {
+                            type = TokenType.Character,
+                            source = input.Substring(0, 1),
+                            children = new List<Token>()
+                        }, input.Substring(1)
+                    );
+                }
+            }
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
+        }
+        
+        class AnyCharExcept : Parser {
+            private string str;
+            public AnyCharExcept(string str) => this.str = str;
+            
+            public (Token, string) Parse(string input) {
+                if(input.Length < 1 || str.Contains(input[0])) {
+                    throw new UnexpectedTypeException(Types());
+                } else {
+                    return (
+                        new Token {
+                            type = TokenType.Character,
+                            source = input.Substring(0, 1),
+                            children = new List<Token>()
+                        }, input.Substring(1)
+                    );
+                }
+            }
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
+        }
+        
         class Char : Parser {
             private char c;
             public Char(char c) => this.c = c;
