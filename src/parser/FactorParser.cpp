@@ -10,21 +10,20 @@ std::vector<TokenType> Ident::type() const {
 
 // <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ParserResult Ident::parse(const std::string& input) const {
-    std::vector<ParserPtr> fstCharOpts = { sptr(Alpha()), sptr(Char('_')) };
-    std::vector<ParserPtr> sndCharOpts = {
-        sptr(Alpha()), sptr(Char('_')), sptr(Digit())
-    };
-    std::vector<ParserPtr> multiCharIdentSteps = {
-        sptr(SelectFrom(fstCharOpts)),
-        sptr(Many(sptr(SelectFrom(sndCharOpts))))
-    };
-    auto multiCharIdent = CreateFrom(multiCharIdentSteps, TokenType::Ident);
-    auto singleCharIdent = AsType(
-        sptr(SelectFrom(fstCharOpts)), TokenType::Ident
-    );
-    std::vector<ParserPtr> parserOpts = {
-        sptr(multiCharIdent), sptr(singleCharIdent)
-    };
-    auto parser = SelectFrom(parserOpts);
+    const auto parser = SelectFrom({
+        sptr(CreateFrom(
+            {
+                sptr(SelectFrom({ sptr(Alpha()), sptr(Char('_')) })),
+                sptr(Many(
+                    sptr(SelectFrom(
+                        { sptr(Alpha()), sptr(Char('_')), sptr(Digit()) }
+                    ))
+                ))
+            }, TokenType::Ident
+        )), sptr(AsType(
+            sptr(SelectFrom({ sptr(Alpha()), sptr(Char('_')) })),
+            TokenType::Ident
+        ))
+    });
     return parser.parse(input);
 }
