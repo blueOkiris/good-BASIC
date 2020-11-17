@@ -11,6 +11,7 @@ namespace GoodBasic {
             Shift, Inequality, Equality, MaskOff, Exclusive, MaskOn,
             Conjunction, Option, Factor, MemberAccess, FuncCall, Lambda,
             CompOrRecDec, Ident, Float, Int, String, Character, Digit,
+            Node,
             None
         }
         
@@ -42,25 +43,31 @@ namespace GoodBasic {
             }
             
             public static Token operator +(Token a, Token b) {
-                if(a.type == b.type || a.type == TokenType.None) {
-                    return new Token {
+                Token result;
+                if(a.type == b.type || a.type == TokenType.Node) {
+                    result = new Token {
                         type = a.type,
                         source = a.source + b.source,
                         children = a | b
                     };
-                } else if(b.type == TokenType.None) {
-                    return new Token {
+                } else if(b.type == TokenType.Node) {
+                    result = new Token {
                         type = b.type,
                         source = a.source + b.source,
                         children = a | b
                     };
                 } else {
-                    return new Token {
-                        type = TokenType.None,
+                    result = new Token {
+                        type = TokenType.Node,
                         source = a.source + b.source,
                         children = new List<Token> { a, b }
                     };
                 }
+                // Uncomment for debug help
+                /*Console.WriteLine(
+                    "Combining {0} with {1} yields {2}", a, b, result
+                );*/
+                return result;
             }
             
             public static string TypeStr(TokenType type) {
@@ -102,6 +109,7 @@ namespace GoodBasic {
                     case TokenType.String: return "str"; 
                     case TokenType.Character: return "char";
                     case TokenType.Digit: return "digit";
+                    case TokenType.Node: return "node";
                     case TokenType.None: return "none";
                     default: return "";
                 }

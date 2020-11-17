@@ -125,6 +125,18 @@ namespace GoodBasic {
             public List<TokenType> Types() => what.Types();
         }
         
+        // Don't fail for optional stuff
+        class Skip : Parser {
+            public (Token, string) Parse(string input) =>
+                (new Token {
+                    type = TokenType.None,
+                    source = "",
+                    children = new List<Token>()
+                }, input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.None };
+        }
+        
         class Char : Parser {
             private char c;
             public Char(char c) => this.c = c;
@@ -171,7 +183,7 @@ namespace GoodBasic {
                 } else {
                     return (
                         new Token {
-                            type = TokenType.Character,
+                            type = TokenType.Digit,
                             source = input.Substring(0, 1),
                             children = new List<Token>()
                         }, input.Substring(1)
