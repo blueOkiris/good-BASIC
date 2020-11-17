@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 #include <exception>
 
 namespace good_basic {
@@ -42,6 +43,12 @@ namespace good_basic {
     struct CreateFrom : public Parser {
         std::vector<Parser> steps;
         TokenType resultType;
+        std::vector<TokenType> type() const override;
+        ParserResult parse(const std::string& input) const override;
+    };
+    
+    struct Many : public Parser {
+        std::shared_ptr<Parser> what;
         std::vector<TokenType> type() const override;
         ParserResult parse(const std::string& input) const override;
     };

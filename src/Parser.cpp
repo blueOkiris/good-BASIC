@@ -2,6 +2,7 @@
 #include <exception>
 #include <string>
 #include <sstream>
+#include <memory>
 #include <Parser.hpp>
 
 using namespace good_basic;
@@ -73,13 +74,37 @@ ParserResult CreateFrom::parse(const std::string& input) const {
         } else {
             finalToken = Token::pair(finalToken, result.first);
         }
-        currInp = currInp.substr(result.second.length());
+        currInp = result.second;
     }
     return { finalToken, currInp };
 }
 
 std::vector<TokenType> CreateFrom::type() const {
     return { resultType };
+}
+
+std::vector<TokenType> Many::type() const {
+    return what->type();
+}
+
+ParserResult Many::parse(const std::string& input) const {
+    auto result = what->parse(input); // Outside of loop so it fails if none
+    
+    auto finalToke = result.first;
+    auto currInp = result.second;
+    
+    bool quit = false;
+    while(!quit) {
+        try {
+            result = what->parse(currInp);
+            finalToke = Token::pair(finalToke, result.first);
+            currInp = result.second;
+        } catch(const UnexpectedTokenException& ute) {
+            quit = true;
+        }
+    }
+    
+    return { finalToke, currInp };
 }
 
 std::vector<TokenType> Char::type() const {
