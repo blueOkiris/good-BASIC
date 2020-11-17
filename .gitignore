@@ -1,4 +1,2 @@
 gbc
-*.o
-*.hi
 .vscode/
