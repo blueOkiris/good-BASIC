@@ -10,76 +10,90 @@ import Token
 -}
 
 
-{--- <expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
+-- <expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
 expr :: Parser Token
-expr =
-    Expr `from` [ chars "!" <|> chars "~"
-                , prod
-                , chars "++" <|> chars "--" ]
-    <|> Expr `from` [ chars "!" <|> chars "~", prod ]
-    <|> Expr `from` [ prod, chars "++" <|> chars "--" ]
+expr = do
+        e <- from [ char '!' <|> char '~', prod, chars "++" <|> chars "--" ]
+        return e { tokenType = Expr }
+    <|> do
+        e <- from [ char '!' <|> char '~', prod ]
+        return e { tokenType = Expr }
+    <|> do
+        e <- from [ prod, chars "++" <|> chars "--" ]
+        return e { tokenType = Expr }
     <|> prod
 
 -- <product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
 prod :: Parser Token
-prod =
-    Product `from`  [ summation
-                    , chars "*" <|> chars "/" <|> chars "%"
-                    , summation ]
+prod = do
+        p <- from [ summation, char '*' <|> char '/' <|> char '%', summation ]
+        return p { tokenType = Product }
     <|> summation
 
 -- <summation> ::= <shift> { ( '+' | '-' ) <shift> }
 summation :: Parser Token
-summation =
-    Summation `from` [ shift, chars "+" <|> chars "-", shift ]
+summation = do
+        s <- from [ shift, char '+' <|> char '-', shift ]
+        return s { tokenType = Summation }
     <|> shift
 
 -- <shift> ::= <inequality> { ( '<<' | '>>' ) <inequality> }
 shift :: Parser Token
-shift =
-    Shift `from`    [ inequality
-                    , chars "<<" <|> chars ">>"
-                    , inequality ]
+shift = do
+        s <- from [ inequality, chars "<<" <|> chars ">>", inequality ]
+        return s { tokenType = Shift }
     <|> inequality
 
 -- <inequality> ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
 inequality :: Parser Token
-inequality =
-    Inequality `from`
-        [ equality
-        , chars "<=" <|> chars ">=" <|> chars "<" <|> chars ">"
-        , equality ]
+inequality = do
+        i <- from   [ equality
+                    , chars "<=" <|> chars ">=" <|> char '<' <|> char '>'
+                    , equality ]
+        return i { tokenType = Inequality }
     <|> equality
 
 -- <equality> ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
 equality :: Parser Token
-equality =
-    Equality `from` [ maskOff, chars "==" <|> chars "!=", maskOff ]
+equality = do
+        e <- from [ maskOff, chars "==" <|> chars "!=", maskOff ]
+        return e { tokenType = Equality }
     <|> maskOff
 
 -- <mask-off> ::= <exclusive> { '&' <exclusive> }
 maskOff :: Parser Token
-maskOff =
-    MaskOff `from` [ exclusive, chars "&", exclusive ] <|> exclusive
+maskOff = do
+        m <- from [ exclusive, char '&', exclusive ]
+        return m { tokenType = MaskOff }
+    <|> exclusive
 
 -- <exclusive> ::= <mask-on> { '^' <mask-on> }
 exclusive :: Parser Token
-exclusive = Exclusive `from` [ maskOn, chars "^", maskOn ] <|> maskOn
+exclusive = do
+        e <- from [ maskOn, char '^', maskOn ]
+        return e { tokenType = Exclusive }
+    <|> maskOn
 
 -- <mask-on> ::= <conjunction> { '|' <conjunction> }
 maskOn :: Parser Token
-maskOn =
-    MaskOn `from` [ conjunction, chars "&&", conjunction ]
+maskOn = do
+        m <- from [ conjunction, char '|', conjunction ]
+        return m { tokenType = MaskOn }
     <|> conjunction
 
 -- <conjunction> ::= <option> { '&&' <option> }
 conjunction :: Parser Token
-conjunction =
-    Conjunction `from` [ option, chars "&&", option ] <|> option
+conjunction = do
+        c <- from [ option, chars "&&", option ] 
+        return c { tokenType = Conjunction }
+    <|> option
 
 -- <option> ::= <factor> { '||' <factor> }
 option :: Parser Token
-option = Option `from` [ factor, chars "||", factor ] <|> factor
+option = do
+        o <- from [ factor, chars "||", factor ]
+        return o { tokenType = Option }
+    <|> factor
 
 {-
  - <factor> ::= <ident> | <int> | <float> | <string>
@@ -94,17 +108,17 @@ factor = memberAcc <|> funcCall <|> lambda <|> compOrRecDec
 memberAcc :: Parser Token
 memberAcc = do
     name <- ident
-    colon <- chars ":"
+    colon <- char ':'
     next <- memberAcc <|> ident
-    return $ combineMany MemberAccess [ name, colon, next ]
+    return (combine name $ combine colon next) { tokenType = MemberAccess }
 
 -- <func-call> ::= 'call' <ident> { <expr> }
 funcCall :: Parser Token
 funcCall = do
     keyword <- chars "call"
     name <- ident
-    exprs <- expr
-    return $ combineMany FuncCall [ keyword, name, exprs ]
+    exprs <- multiple expr
+    return (combine keyword $ combine name exprs) { tokenType = FuncCall }
 
 {-
  - <lambda> ::= 'lambda' '(' [ <type-arg-list> ] ')' <type-name>
@@ -114,39 +128,41 @@ funcCall = do
 lambda :: Parser Token
 lambda = do
     keyword <- chars "lambda"
-    lpar <- chars "("
+    lpar <- char '('
     --args <- typeArgList
-    rpar <- chars ")"
+    rpar <- char ')'
     --tp <- typeName
     --stmts <- multiple statement
     endKey <- chars "end"
-    return $ combineMany Lambda [ keyword, lpar, {-args,-} rpar{-, tp-}
-                                ,{- stmts,-} endKey ]
+    return 
+        (combine keyword $ combine lpar {-$ combine args-} $ combine rpar
+            {-$ combine tp $ combine stmts-} endKey) { tokenType = Lambda }
 
 -- <comp-rec-dec> ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
 compOrRecDec :: Parser Token
 compOrRecDec = do
     keyword <- chars "data"
     name <- ident
-    lpar <- chars "("
+    lpar <- char '('
     
     -- [ <expr> { ',' <expr> } ]
     firstExpr <- expr
-    nextExprs <- multiple $ Expr `from` [ chars ",", expr ]
+    nextExprs <- multiple (from [ char ',', expr ])
                 <|> do return $ RawToken Node ""
-    let exprList =  if undefToken nextExprs then firstExpr else
+    let exprList =  if source nextExprs == "" then firstExpr else
                         combine firstExpr nextExprs
     
-    rpar <- chars ")"
-    return $
-        combineMany CompOrRecDec [ keyword, name, lpar, exprList, rpar ]-}
+    rpar <- char ')'
+    return
+        (combine keyword $ combine name $ combine lpar $ combine exprList rpar)
+            { tokenType = CompOrRecDec }
 
 -- <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
 ident :: Parser Token
 ident = do
-    name <- from    [ alpha <|> chars "_"
-                    , multiple (alpha <|> chars "_" <|> digit) ]
-            <|> alpha <|> chars "_"
+    name <- from    [ alpha <|> char '_'
+                    , multiple (alpha <|> char '_' <|> digit) ]
+            <|> alpha <|> char '_'
     return $ name { tokenType = Ident }
 
 -- <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/

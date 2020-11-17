@@ -52,3 +52,11 @@ testWeakFactor = do
     print (parsed :: [(Token, String)])
     if input == "quit"  then putStrLn "Done." else testWeakFactor
 
+testExpr :: IO()
+testExpr = do
+    putStr "Type value to parse expressions from ('quit' to quit): "
+    input <- getLine
+    let parsed = parse expr input
+    print (parsed :: [(Token, String)])
+    if input == "quit"  then putStrLn "Done." else testExpr
+
