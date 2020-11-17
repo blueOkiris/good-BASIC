@@ -38,7 +38,7 @@ namespace good_basic {
         };
         typedef std::shared_ptr<Parser> ParserPtr;
         template<typename T>
-        inline std::shared_ptr<T> ptr(const T& obj) {
+        inline std::shared_ptr<T> sptr(const T& obj) {
             return std::make_shared<T>(obj);
         }
 

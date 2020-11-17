@@ -14,7 +14,7 @@ namespace good_basic {
                         << "Enter something to parse 'a's from "
                             "('quit' to quit):";
                     getline(std::cin, input);
-                    const auto parser = Many(ptr(Char('a')));
+                    const auto parser = Many(sptr(Char('a')));
                     try {
                         const auto result = parser.parse(input);
                         std::cout
@@ -33,7 +33,7 @@ namespace good_basic {
                         << "Enter something to parse digits from "
                             "('quit' to quit):";
                     getline(std::cin, input);
-                    const auto parser = Many(ptr(Digit()));
+                    const auto parser = Many(sptr(Digit()));
                     try {
                         const auto result = parser.parse(input);
                         std::cout
