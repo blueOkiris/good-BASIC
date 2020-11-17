@@ -17,6 +17,7 @@ namespace good_basic {
             Ident, Float, Int, String, Character, Digit,
             None
         };
+        
         struct Token {
             TokenType type;
             std::string source;
