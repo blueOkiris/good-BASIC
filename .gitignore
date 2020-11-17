@@ -1,2 +1,3 @@
-gbc
 .vscode/
+gbc
+*.o
