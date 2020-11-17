@@ -8,6 +8,7 @@ namespace GoodBasic {
         interface Parser : IEnumerable {
             (Token, string) Parse(string input);
             List<TokenType> Types();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class SelectFrom : Parser {
@@ -43,8 +44,6 @@ namespace GoodBasic {
                     yield return parser;
                 }
             }
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Create : Parser {
@@ -91,8 +90,6 @@ namespace GoodBasic {
                     yield return parser;
                 }
             }
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Many : Parser {
@@ -124,8 +121,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return what;
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AsType : Parser {
@@ -153,8 +148,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return what;
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // Don't fail for optional stuff
@@ -171,8 +164,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Skip();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AnyChar : Parser {
@@ -195,8 +186,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new AnyChar();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AnyCharExcept : Parser {
@@ -222,8 +211,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new AnyCharExcept(str);
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Char : Parser {
@@ -249,8 +236,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Char(c);
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Alpha : Parser {
@@ -273,8 +258,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Alpha();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Digit : Parser {
@@ -297,8 +280,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Digit();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class ParserException : Exception {

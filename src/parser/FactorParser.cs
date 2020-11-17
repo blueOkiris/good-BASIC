@@ -27,8 +27,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Ident();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
@@ -79,8 +77,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Float();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <int> ::= /-?[0-9]+/
@@ -99,8 +95,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Integer();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <string> ::= /'(\\.|[^\\'])*'/
@@ -128,8 +122,6 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Str();
             }
-            
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }
