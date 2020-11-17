@@ -1,18 +1,20 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace GoodBasic {
     namespace Parser {        
-        interface Parser {
+        interface Parser : IEnumerable {
             (Token, string) Parse(string input);
             List<TokenType> Types();
         }
         
         class SelectFrom : Parser {
-            private List<Parser> options;
-            public SelectFrom(List<Parser> options) => this.options = options;
+            private List<Parser> options = new List<Parser>();
             
+            public void Add(Parser option) => options.Add(option);
+
             public (Token, string) Parse(string input) {
                 foreach(var parser in options) {
                     try {
@@ -35,16 +37,26 @@ namespace GoodBasic {
                 }
                 return optTypes;
             }
+
+            public IEnumerator<Parser> GetEnumerator() {
+                foreach(var parser in options) {
+                    yield return parser;
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
-        class CreateFrom : Parser {
+        class Create : Parser {
             private List<Parser> steps;
             private TokenType resultType;
             
-            public CreateFrom(List<Parser> steps, TokenType resultType) {
-                this.steps = steps;
+            public Create(TokenType resultType) {
+                this.steps = new List<Parser>();
                 this.resultType = resultType;
             }
+            
+            public void Add(Parser step) => steps.Add(step);
             
             public (Token, string) Parse(string input) {
                 var currInp = input;
@@ -73,6 +85,14 @@ namespace GoodBasic {
             
             public List<TokenType> Types() =>
                 new List<TokenType> { resultType };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                foreach(var parser in steps) {
+                    yield return parser;
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Many : Parser {
@@ -100,6 +120,12 @@ namespace GoodBasic {
             }
             
             public List<TokenType> Types() => what.Types();
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return what;
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AsType : Parser {
@@ -123,6 +149,12 @@ namespace GoodBasic {
             }
             
             public List<TokenType> Types() => what.Types();
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return what;
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // Don't fail for optional stuff
@@ -135,6 +167,12 @@ namespace GoodBasic {
                 }, input);
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.None };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Skip();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AnyChar : Parser {
@@ -153,6 +191,12 @@ namespace GoodBasic {
             }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Character };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new AnyChar();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class AnyCharExcept : Parser {
@@ -174,6 +218,12 @@ namespace GoodBasic {
             }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Character };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new AnyCharExcept(str);
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Char : Parser {
@@ -195,6 +245,12 @@ namespace GoodBasic {
             }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Character };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Char(c);
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Alpha : Parser {
@@ -213,6 +269,12 @@ namespace GoodBasic {
             }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Character };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Alpha();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class Digit : Parser {
@@ -231,6 +293,12 @@ namespace GoodBasic {
             }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Digit };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Digit();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         class ParserException : Exception {

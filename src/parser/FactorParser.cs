@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GoodBasic {
@@ -6,56 +7,52 @@ namespace GoodBasic {
         // <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
         class Ident : Parser {
             public (Token, string) Parse(string input) =>
-                new SelectFrom(new List<Parser> {
-                    new CreateFrom(
-                        new List<Parser> {
-                            new SelectFrom(new List<Parser> {
-                                new Alpha(), new Char('_')
-                            }), new Many(
-                                new SelectFrom(new List<Parser> {
-                                    new Alpha(), new Char('_'),
-                                    new Digit()
-                                })
-                            )
-                        }, TokenType.Ident
-                    ), new AsType(
-                        new SelectFrom(new List<Parser> {
-                            new Alpha(), new Char('_')
-                        }), TokenType.Ident
+                new SelectFrom {
+                    new Create(TokenType.Ident) {
+                        new SelectFrom { new Alpha(), new Char('_') },
+                        new Many(
+                            new SelectFrom {
+                                new Alpha(), new Char('_'), new Digit()
+                            }
+                        )
+                    }, new AsType(
+                        new SelectFrom { new Alpha(), new Char('_') },
+                        TokenType.Ident
                     )
-                }).Parse(input);
+                }.Parse(input);
+                
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Ident };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Ident();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <float> ::= /-?((.[0-9]+)|([0-9]+.)|([0-9]+.[0-9]+))(e[+-]?[0-9]+)/
         class Float : Parser {
             public (Token, string) Parse(string input) {
-                var signParser = new SelectFrom(new List<Parser> {
+                var signParser = new SelectFrom {
                     new Char('+'), new Char('-'), new Skip()
-                });
-                var firstNumParser = new SelectFrom(new List<Parser> {
-                    new CreateFrom(
-                        new List<Parser> {
-                            new Many(new Digit()), new Char('.'),
-                            new Many(new Digit())
-                        }, TokenType.Float
-                    ), new CreateFrom(
-                        new List<Parser> {
-                            new Char('.'), new Many(new Digit())
-                        }, TokenType.Float
-                    ), new CreateFrom(
-                        new List<Parser> {
-                            new Many(new Digit()), new Char('.')
-                        }, TokenType.Float
-                    )
-                });
-                var exponParser = new SelectFrom(new List<Parser>{
-                    new CreateFrom(
-                        new List<Parser> { new Char('e'), new Integer() },
-                        TokenType.Node
-                    ), new Skip()
-                });
+                };
+                var firstNumParser = new SelectFrom{
+                    new Create(TokenType.Float) {
+                        new Many(new Digit()),
+                        new Char('.'),
+                        new Many(new Digit())
+                    }, new Create(TokenType.Float) {
+                        new Char('.'), new Many(new Digit())
+                    }, new Create(TokenType.Float) {
+                        new Many(new Digit()), new Char('.')
+                    }
+                };
+                var exponParser = new SelectFrom {
+                    new Create(TokenType.Node) {
+                        new Char('e'), new Integer()
+                    }, new Skip()
+                };
                 
                 var sign = signParser.Parse(input);
                 (Token, string) num;
@@ -75,52 +72,64 @@ namespace GoodBasic {
                 
                 return finalNum;
             }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Float };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Float();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <int> ::= /-?[0-9]+/
         class Integer : Parser {
             public (Token, string) Parse(string input) =>
-                new SelectFrom(new List<Parser> {
-                    new CreateFrom(
-                        new List<Parser> {
-                            new SelectFrom(new List<Parser> {
-                                new Char('+'), new Char('-')
-                            }),
-                            new Many(new Digit())
-                        }, TokenType.Int
-                    ), new AsType(new Many(new Digit()), TokenType.Int)
-                }).Parse(input);
+                new SelectFrom {
+                    new Create(TokenType.Int) {
+                        new SelectFrom { new Char('+'), new Char('-') },
+                        new Many(new Digit())
+                    }, new AsType(new Many(new Digit()), TokenType.Int)
+                }.Parse(input);
+                
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Int };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Integer();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
         // <string> ::= /'(\\.|[^\\'])*'/
         class Str : Parser {
             public (Token, string) Parse(string input) =>
-                new SelectFrom(new List<Parser> {
-                    new CreateFrom(
-                        new List<Parser> {
-                            new Char('\''),
-                            new Many(
-                                new SelectFrom(new List<Parser> {
-                                    new CreateFrom(
-                                        new List<Parser> {
-                                            new Char('\\'),
-                                            new AnyChar()
-                                        }, TokenType.Character
-                                    ), new AnyCharExcept("\\'")
-                                })
-                            ), new Char('\'')
-                        }, TokenType.String
-                    ), new CreateFrom(
-                        new List<Parser> { new Char('\''), new Char('\'') },
-                        TokenType.String
-                    )
-                }).Parse(input);
+                new SelectFrom {
+                    new Create(TokenType.String) {
+                        new Char('\''),
+                        new Many(
+                            new SelectFrom {
+                                new Create(TokenType.Character) {
+                                    new Char('\\'),
+                                    new AnyChar()
+                                }, new AnyCharExcept("\\'")
+                            }
+                        ), new Char('\'')
+                    }, new Create(TokenType.String) { 
+                        new Char('\''), new Char('\'')
+                    }
+                }.Parse(input);
+                
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.String };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new Str();
+            }
+            
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }
