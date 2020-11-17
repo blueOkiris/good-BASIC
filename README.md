@@ -70,6 +70,6 @@ end
 
 ## Building
 
-To build the default C++ compiler, run `make`
+To build the default C# compiler, run `make`
 
 I intend to rewrite the compiler in Good BASIC once the initial compiler is done.
