@@ -82,6 +82,20 @@ std::vector<TokenType> CreateFrom::type() const {
     return { resultType };
 }
 
+std::vector<TokenType> Char::type() const {
+    return { TokenType::Character };
+}
+
+ParserResult Char::parse(const std::string& input) const {
+    if(input.length() < 1 || input[0] != c) {
+        throw UnexpectedTokenException(type());
+    }
+    return {
+        { TokenType::Character, input.substr(0, 1), std::vector<Token>() },
+        input.substr(1) 
+    };
+}
+
 ParserException::ParserException(const std::string& message) :
         _message(message) {
 }

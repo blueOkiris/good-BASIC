@@ -46,6 +46,12 @@ namespace good_basic {
         ParserResult parse(const std::string& input) const override;
     };
     
+    struct Char : public Parser {
+        char c;
+        std::vector<TokenType> type() const override;
+        ParserResult parse(const std::string& input) const override;
+    };
+    
     struct ParserException : public std::exception {
         private:
             const std::string _message;
