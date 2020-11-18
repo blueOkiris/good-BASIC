@@ -4,6 +4,80 @@ using System.Collections.Generic;
 
 namespace GoodBasic {
     namespace Parser {
+        /*
+         * <factor> ::= <ident> | <int> | <float> | <string>
+         *            | lambda | <comp-rec-dec>
+         *            | <member-acc> | <func-call> | '(' <expr> ')'
+         */
+        class Factor : Parser {
+            public (Token, string) Parse(string input) =>
+                new SelectFrom {
+                    new Ident(), new Float(), new Integer(), new Str(),
+                    new Lambda(), new CompOrRecDec(),
+                    new MemberAcc(), new FuncCall(),
+                    new Create(TokenType.Factor) {
+                        //new Char('('), new Expr(), new Char(')')
+                    }
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Factor };
+        }        
+        
+        // <member-acc> ::= <ident> ':' ( <ident> | <member-acc> )
+        class MemberAcc : Parser {
+            public (Token, string) Parse(string input) =>
+                new Create(TokenType.MemberAccess) {
+                    new Ident(), new Char(':'),
+                    new SelectFrom { new Ident(), new MemberAcc() }
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.MemberAccess };
+        }
+        
+        // <func-call> ::= 'call' <ident> { <expr> }
+        class FuncCall : Parser {
+            public (Token, string) Parse(string input) =>
+                new Create(TokenType.MemberAccess) {
+                    new Word("call"), new Ident(), //new Expr()
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.FuncCall };
+        }
+        
+        /*
+         * <lambda> ::= 'lambda' '(' [ <type-arg-list> ] ')' <type-name> /\n+/
+         *                  { <statement> /\n+/ }
+         *              'end'
+         */
+        class Lambda : Parser {
+            public (Token, string) Parse(string input) =>
+                new Create(TokenType.MemberAccess) {
+                    new Word("lambda"), new Char('('),
+                    //new TypeArgList()
+                    new Char(')'), //new TypeName(),
+                    //new Many(new Stmt()),
+                    new Word("end")
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Lambda };
+        }
+         
+        // <comp-rec-dec>  ::= 'data' <ident> '(' [ <expr> { ',' <expr> } ] ')'
+        class CompOrRecDec : Parser {
+            public (Token, string) Parse(string input) =>
+                new Create(TokenType.MemberAccess) {
+                    new Word("data"), new Ident(), new Char('('),
+                    /*new SelectFrom {
+                        new Create(TokenType.Node) {
+                            new Expr(), new Many(new Expr())
+                        }, new Expr()
+                    },*/
+                    new Char(')')
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.CompOrRecDec };
+        }
+        
         // <ident> ::= /[A-Za-z_][A-Za-z0-9_]+/
         class Ident : Parser {
             public (Token, string) Parse(string input) =>

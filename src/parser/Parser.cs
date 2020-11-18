@@ -238,6 +238,39 @@ namespace GoodBasic {
             }
         }
         
+        class Word : Parser {
+            private string str;
+            public Word(string str) => this.str = str;
+            
+            public (Token, string) Parse(string input) {
+                if(str.Length == 0) {
+                    return (
+                        new Token {
+                            type = TokenType.Character,
+                            source = "",
+                            children = new List<Token>()
+                        }, input
+                    );
+                }
+                
+                var result = new Char(str[0]).Parse(input);
+                
+                Token finalToken = result.Item1;
+                string currInp = result.Item2;
+                
+                for(int i = 1; i < str.Length; i++) {
+                    result = new Char(str[i]).Parse(currInp);
+                    finalToken += result.Item1;
+                    currInp = result.Item2;
+                }
+                
+                return (finalToken, currInp);
+            }
+            
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
+        }
+        
         class Alpha : Parser {
             public (Token, string) Parse(string input) {
                 if(input.Length < 1 || !char.IsLetter(input[0])) {
