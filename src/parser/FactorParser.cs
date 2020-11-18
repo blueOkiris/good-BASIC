@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace GoodBasic {
@@ -16,7 +14,7 @@ namespace GoodBasic {
                     new Lambda(), new CompOrRecDec(),
                     new MemberAcc(), new FuncCall(),
                     new Create(TokenType.Factor) {
-                        //new Char('('), new Expr(), new Char(')')
+                        new Char('('), new Expr(), new Char(')')
                     }
                 }.Parse(input);
             public List<TokenType> Types() =>
@@ -67,11 +65,11 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) =>
                 new Create(TokenType.MemberAccess) {
                     new Word("data"), new Ident(), new Char('('),
-                    /*new SelectFrom {
+                    new SelectFrom {
                         new Create(TokenType.Node) {
                             new Expr(), new Many(new Expr())
                         }, new Expr()
-                    },*/
+                    },
                     new Char(')')
                 }.Parse(input);
             public List<TokenType> Types() =>
