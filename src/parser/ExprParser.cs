@@ -4,156 +4,262 @@ namespace GoodBasic {
     namespace Parser {
         //<expr> ::= { ( '!' | '~' ) } <product> { ( '++' | '--' ) }
         class Expr : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Expr) {
-                        new SelectFrom { new Char('!'), new Char('~') },
-                        new Product(),
-                        new SelectFrom { new Word("++"), new Word("--") }
-                    }, new Create(TokenType.Expr) {
-                        new Product(),
-                        new SelectFrom { new Word("++"), new Word("--") }
-                    }, new Create(TokenType.Expr) {
-                        new SelectFrom { new Char('!'), new Char('~') },
-                        new Product()
-                    }, new Product()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new Maybe(
+                    new SelectFrom { new Char('!'), new Char('~') }
+                ).Parse(input);
+                var product = new Product().Parse(prefix.Item2);
+                var suffix = new Maybe(
+                    new SelectFrom { new Word("++"), new Word("--") }
+                ).Parse(product.Item2);
+                
+                var expr = product.Item1;
+                if(prefix.Item1.type != TokenType.Failure) {
+                    expr = prefix.Item1 + expr;
+                    expr.type = TokenType.Expr;
+                }
+                if(suffix.Item1.type != TokenType.Failure) {
+                    expr += suffix.Item1;
+                    expr.type = TokenType.Expr;
+                }
+                
+                return (expr, suffix.Item2);
+            }
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Expr };
         }
         
         //<product> ::= <summation> { ( '*' | '/' | '%' ) <summation> }
         class Product : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Product) {
-                        new Summation(), 
+            public (Token, string) Parse(string input) {
+                var prefix = new Summation().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
                         new SelectFrom {
                             new Char('*'), new Char('/'), new Char('%')
-                        },
-                        new Summation()
-                    }, new Summation()
-                }.Parse(input);
+                        }, new Summation()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Product;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Product };
         }
         
         //<summation> ::= <shift> { ( '+' | '-' ) <shift> }
         class Summation : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Summation) {
-                        new Shift(), 
+            public (Token, string) Parse(string input) {
+                var prefix = new Shift().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
                         new SelectFrom { new Char('+'), new Char('-') },
                         new Shift()
-                    }, new Shift()
-                }.Parse(input);
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Summation;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Summation };
         }
         
         //<shift> ::= <inequality> { ( '<<' | '>>' ) <inequality> }
         class Shift : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Shift) {
-                        new Inequality(), 
-                        new SelectFrom {
-                            new Word("<<"), new Word(">>")
-                        }, new Inequality()
-                    }, new Inequality()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new Inequality().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
+                        new SelectFrom { new Word(">>"), new Word("<<") },
+                        new Inequality()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Shift;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Shift };
         }
         
         //<inequality> ::= <equality> { ( '<' | '>' | '<=' | '>=' ) <equality> }
         class Inequality : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Inequality) {
-                        new Equality(), 
+            public (Token, string) Parse(string input) {
+                var prefix = new Equality().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
                         new SelectFrom {
                             new Char('<'), new Char('>'),
-                            new Word("<="), new Word(">=")
-                        }, new Equality()
-                    }, new Equality()
-                }.Parse(input);
+                            new Word("=="), new Word("!=")
+                        },
+                        new Equality()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Inequality;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Inequality };
         }
         
         //<equality> ::= <mask-off> { ( '==' | '!=' ) <mask-off> }
         class Equality : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Equality) {
-                        new MaskOff(), 
-                        new SelectFrom {
-                            new Word("=="), new Word("!=")
-                        }, new MaskOff()
-                    }, new MaskOff()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new MaskOff().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
+                        new SelectFrom { new Word("=="), new Word("!=") },
+                        new MaskOff()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Equality;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Equality };
         }
         
         //<mask-off> ::= <exclusive> { '&' <exclusive> }
         class MaskOff : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.MaskOff) {
-                        new Exclusive(), new Char('&'), new Exclusive()
-                    }, new Exclusive()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new Exclusive().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
+                        new Char('&'), new Exclusive()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.MaskOff;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.MaskOff };
         }
         
         //<exclusive> ::= <mask-on> { '^' <mask-on> }
         class Exclusive : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Exclusive) {
-                        new MaskOn(), new Char('^'), new MaskOn()
-                    }, new MaskOn()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new MaskOn().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
+                        new Char('^'), new MaskOn()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Exclusive;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Exclusive };
         }
         
         //<mask-on> ::= <conjunction> { '|' <conjunction> }
         class MaskOn : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.MaskOn) {
-                        new Conjunction(), new Char('|'), new Conjunction()
-                    }, new Conjunction()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new Conjunction().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) {
+                        new Char('|'), new Conjunction()
+                    }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.MaskOn;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.MaskOn };
         }
         
         //<conjunction> ::= <option> { '&&' <option> }
         class Conjunction : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Conjunction) {
-                        new Option(), new Word("&&"), new Option()
-                    }, new Option()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var prefix = new Option().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) { new Word("&&"), new Option() }
+                ).Parse(prefix.Item2);
+                
+                var token = prefix.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    token += suffix.Item1;
+                    token.type = TokenType.Conjunction;
+                }
+                
+                return (token, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Conjunction };
         }
         
         //<option> ::= <factor> { '||' <factor> }
         class Option : Parser {
-            public (Token, string) Parse(string input) =>
-                new SelectFrom {
-                    new Create(TokenType.Option) {
-                        new Factor(), new Word("||"), new Factor()
-                    }, new Factor()
-                }.Parse(input);
+            public (Token, string) Parse(string input) {
+                var fac = new Factor().Parse(input);
+                var suffix = new Maybe(
+                    new Create(TokenType.Node) { new Word("||"), new Factor() }
+                ).Parse(fac.Item2);
+                
+                var option = fac.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    option += suffix.Item1;
+                    option.type = TokenType.Option;
+                }
+                
+                return (option, suffix.Item2);
+            }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Option };
         }
