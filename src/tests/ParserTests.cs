@@ -45,6 +45,20 @@ namespace GoodBasic {
                     }
                 }
             }
+            
+            public static void Expressions() {
+                string input = "";
+                while(input != "quit") {
+                    try {
+                        Console.Write("Enter expressions ('quit' to quit'): ");
+                        input = Console.ReadLine();
+                        var result = new Expr().Parse(input);
+                        Console.WriteLine("Parsed: {0}", result);
+                    } catch(UnexpectedTypeException ute) {
+                        Console.WriteLine(ute);
+                    }
+                }
+            }
         }
     }
 }

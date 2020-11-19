@@ -11,6 +11,25 @@ namespace GoodBasic {
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
+        class Maybe : Parser {
+            private Parser what;
+            public Maybe(Parser what) => this.what = what;
+            
+            public (Token, string) Parse(string input) {
+                try {
+                    return what.Parse(input);
+                } catch(UnexpectedTypeException) {
+                    return (Token.FailureToken, input);
+                }
+            }
+            
+            public List<TokenType> Types() => what.Types();
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return what;
+            }
+        }
+        
         class SelectFrom : Parser {
             private List<Parser> options = new List<Parser>();
             
@@ -58,19 +77,17 @@ namespace GoodBasic {
             public void Add(Parser step) => steps.Add(step);
             
             public (Token, string) Parse(string input) {
-                var currInp = input;
-                var finalToken = new Token {
-                    type = TokenType.None,
-                    source = "",
-                    children = new List<Token>()
-                };
-                foreach(var parser in steps) {
-                    var result = parser.Parse(currInp);
-                    if(finalToken.type == TokenType.None) {
-                        finalToken = result.Item1;
-                    } else {
-                        finalToken += result.Item1;
-                    }
+                var result = steps[0].Parse(input);
+                var subSteps = new List<Parser>(steps.ToArray());
+                subSteps.RemoveAt(0);
+                
+                var currInp = result.Item2;
+                var finalToken = result.Item1;
+                
+                foreach(var parser in subSteps) {
+                    result = parser.Parse(currInp);
+                    
+                    finalToken += result.Item1;
                     currInp = result.Item2;
                 }
                 return (
@@ -147,22 +164,6 @@ namespace GoodBasic {
 
             public IEnumerator<Parser> GetEnumerator() {
                 yield return what;
-            }
-        }
-        
-        // Don't fail for optional stuff
-        class Skip : Parser {
-            public (Token, string) Parse(string input) =>
-                (new Token {
-                    type = TokenType.None,
-                    source = "",
-                    children = new List<Token>()
-                }, input);
-            public List<TokenType> Types() =>
-                new List<TokenType> { TokenType.None };
-
-            public IEnumerator<Parser> GetEnumerator() {
-                yield return new Skip();
             }
         }
         

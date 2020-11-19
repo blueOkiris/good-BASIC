@@ -12,13 +12,19 @@ namespace GoodBasic {
             Conjunction, Option, Factor, MemberAccess, FuncCall, Lambda,
             CompOrRecDec, Ident, Float, Int, String, Character, Digit,
             Node,
-            None
+            Failure
         }
         
         struct Token {
             public TokenType type;
             public string source;
             public List<Token> children;
+            
+            public static Token FailureToken = new Token {
+                type = TokenType.Failure,
+                source = "",
+                children = new List<Token>()
+            };
             
             public override string ToString() {
                 var tokStr = new StringBuilder();
@@ -110,7 +116,7 @@ namespace GoodBasic {
                     case TokenType.Character: return "char";
                     case TokenType.Digit: return "digit";
                     case TokenType.Node: return "node";
-                    case TokenType.None: return "none";
+                    case TokenType.Failure: return "none";
                     default: return "";
                 }
             }
