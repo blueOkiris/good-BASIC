@@ -74,7 +74,7 @@ namespace GoodBasic {
                 // lambda items
                 var lambdaKeyword = new Word("lambda").Parse(input);
                 var lpar = new Char('(').Parse(lambdaKeyword.Item2);
-                var arglist = (Token.FailureToken, lambdaKeyword.Item2);//new Maybe(new TypeArgList());
+                var arglist = (Token.FailureToken, lpar.Item2);//new Maybe(new TypeArgList());
                 var rpar = new Char(')').Parse(arglist.Item2);
                 var typeName = (Token.FailureToken, rpar.Item2);// new Typename().Parse(rpar.Item2);
                 var statements = (Token.FailureToken, typeName.Item2); //new Maybe(new Many(new Statement()));
