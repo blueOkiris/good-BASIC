@@ -42,6 +42,7 @@ namespace GoodBasic {
                     funcDef += stmts.Item1;
                 }
                 funcDef += endKeyword.Item1;
+                funcDef.type = TokenType.FuncDef;
                 
                 return (funcDef, endKeyword.Item2);
             }
@@ -160,6 +161,7 @@ namespace GoodBasic {
                     token += functions.Item1;
                 }
                 token += endKeyword.Item1;
+                token.type = TokenType.CompDef;
                 
                 return (token, endKeyword.Item2);
             }
@@ -188,6 +190,7 @@ namespace GoodBasic {
                     token += functions.Item1;
                 }
                 token += endKeyword.Item1;
+                token.type = TokenType.RecDef;
                 
                 return (token, endKeyword.Item2);
             }
@@ -210,7 +213,7 @@ namespace GoodBasic {
                     token += argList.Item1;
                 }
                 token += rpar.Item1 + typeName.Item1;
-                token.type = TokenType.Failure;
+                token.type = TokenType.Node;
                 
                 return (token, typeName.Item2);
             }
