@@ -74,10 +74,12 @@ namespace GoodBasic {
                 // lambda items
                 var lambdaKeyword = new Word("lambda").Parse(input);
                 var lpar = new Char('(').Parse(lambdaKeyword.Item2);
-                var arglist = (Token.FailureToken, lpar.Item2);//new Maybe(new TypeArgList());
+                var arglist = new Maybe(new TypeArgList()).Parse(lpar.Item2);
                 var rpar = new Char(')').Parse(arglist.Item2);
-                var typeName = (Token.FailureToken, rpar.Item2);// new Typename().Parse(rpar.Item2);
-                var statements = (Token.FailureToken, typeName.Item2); //new Maybe(new Many(new Statement()));
+                var typeName = new TypeName().Parse(rpar.Item2);
+                var statements = new Maybe(
+                    new Many(new Statement())
+                ).Parse(typeName.Item2);
                 var endKeyword = new Word("end").Parse(statements.Item2);
                 
                 // Combine

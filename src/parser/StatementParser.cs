@@ -35,7 +35,7 @@ namespace GoodBasic {
         class Declaration : Parser {
             public (Token, string) Parse(string input) {
                 var letKeyword = new Word("let").Parse(input);
-                var typeName = (Token.FailureToken, letKeyword.Item2);//new TypeName().Parse(letKeyword.Item2);
+                var typeName = new TypeName().Parse(letKeyword.Item2);
                 var name = new Ident().Parse(typeName.Item2);
                 var assignment = new Maybe(
                     new Create(TokenType.Assignment) {

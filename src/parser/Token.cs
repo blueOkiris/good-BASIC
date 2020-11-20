@@ -11,8 +11,8 @@ namespace GoodBasic {
             Shift, Inequality, Equality, MaskOff, Exclusive, MaskOn,
             Conjunction, Option, Factor, MemberAccess, FuncCall, Lambda,
             CompOrRecDec, Ident, Float, Int, String, Character, Digit,
-            Node,
-            Failure
+            TypeList,
+            Node, Failure
         }
         
         struct Token {
@@ -115,6 +115,7 @@ namespace GoodBasic {
                     case TokenType.String: return "str"; 
                     case TokenType.Character: return "char";
                     case TokenType.Digit: return "digit";
+                    case TokenType.TypeList: return "type-list";
                     case TokenType.Node: return "node";
                     case TokenType.Failure: return "none";
                     default: return "";

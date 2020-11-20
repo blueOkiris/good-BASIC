@@ -25,6 +25,7 @@ namespace GoodBasic {
                 
                 return (expr, suffix.Item2);
             }
+            
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Expr };
         }
