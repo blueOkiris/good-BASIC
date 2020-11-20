@@ -47,8 +47,10 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) {
                 // Function call items
                 var callKeyword = new Word("call").Parse(input);
-                var name = new Ident().Parse(callKeyword.Item2);
-                var exprs = new Maybe(new Many(new Expr())).Parse(name.Item2);
+                    var sp1 = new SkipWhitespace().Parse(callKeyword.Item2);
+                var name = new Ident().Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(name.Item2);
+                var exprs = new Maybe(new Many(new Expr())).Parse(sp2.Item2);
                 
                 // Combine
                 var funcCall = callKeyword.Item1 + name.Item1;
@@ -73,14 +75,24 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) {
                 // lambda items
                 var lambdaKeyword = new Word("lambda").Parse(input);
-                var lpar = new Char('(').Parse(lambdaKeyword.Item2);
-                var arglist = new Maybe(new TypeArgList()).Parse(lpar.Item2);
-                var rpar = new Char(')').Parse(arglist.Item2);
-                var typeName = new TypeName().Parse(rpar.Item2);
+                    var sp1 = new SkipWhitespace().Parse(lambdaKeyword.Item2);
+                var lpar = new Char('(').Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(lpar.Item2);
+                var arglist = new Maybe(new TypeArgList()).Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(arglist.Item2);
+                var rpar = new Char(')').Parse(sp3.Item2);
+                    var sp4 = new SkipWhitespace().Parse(rpar.Item2);
+                var typeName = new TypeName().Parse(sp4.Item2);
+                    var sp5 = new SkipWhitespace().Parse(typeName.Item2);
+                var newLine = new Char('\n').Parse(sp5.Item2);
                 var statements = new Maybe(
-                    new Many(new Statement())
-                ).Parse(typeName.Item2);
-                var endKeyword = new Word("end").Parse(statements.Item2);
+                    new Create(TokenType.Node) {
+                        new SkipWhitespace(), new Many(new Statement()),
+                        new SkipWhitespace(), new Char('\n')
+                    }
+                ).Parse(newLine.Item2);
+                    var sp6 = new SkipWhitespace().Parse(statements.Item2);
+                var endKeyword = new Word("end").Parse(sp6.Item2);
                 
                 // Combine
                 var lambda = lambdaKeyword.Item1 + lpar.Item1;
@@ -107,15 +119,21 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) {
                 // Declaration items
                 var dataKeyword = new Word("data").Parse(input);
-                var name = new Ident().Parse(dataKeyword.Item2);
-                var lpar = new Char('(').Parse(name.Item2);
-                var firstExpr = new Expr().Parse(lpar.Item2);
+                    var sp1 = new SkipWhitespace().Parse(dataKeyword.Item2);
+                var name = new Ident().Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(name.Item2);
+                var lpar = new Char('(').Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(lpar.Item2);
+                var firstExpr = new Expr().Parse(sp3.Item2);
                 var nextExprs = new Maybe(
                     new Many(
-                        new Create(TokenType.Node) { new Char(','), new Expr() }
+                        new Create(TokenType.Node) {
+                            new SkipWhitespace(), new Char(','), new Expr()
+                        }
                     )
                 ).Parse(firstExpr.Item2);
-                var rpar = new Char(')').Parse(nextExprs.Item2);
+                    var sp4 = new SkipWhitespace().Parse(nextExprs.Item2);
+                var rpar = new Char(')').Parse(sp4.Item2);
                 
                 // Combine
                 var declr =

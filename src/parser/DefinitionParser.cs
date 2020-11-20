@@ -21,17 +21,30 @@ namespace GoodBasic {
         class FuncDef : Parser {
             public (Token, string) Parse(string input) {
                 var defKeyword = new Word("def").Parse(input);
-                var fnKeyword = new Word("fn").Parse(defKeyword.Item2);
-                var lpar = new Char('(').Parse(fnKeyword.Item2);
-                var argList = new Maybe(new TypeArgList()).Parse(lpar.Item2);
-                var rpar = new Char(')').Parse(argList.Item2);
+                    var sp1 = new SkipWhitespace().Parse(defKeyword.Item2);
+                var fnKeyword = new Word("fn").Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(fnKeyword.Item2);
+                var lpar = new Char('(').Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(lpar.Item2);
+                var argList = new Maybe(new TypeArgList()).Parse(sp3.Item2);
+                    var sp4 = new SkipWhitespace().Parse(argList.Item2);
+                var rpar = new Char(')').Parse(sp4.Item2);
+                    var sp5 = new SkipWhitespace().Parse(rpar.Item2);
                 var retType = new SelectFrom {
                     new TypeName(), new Word("void")
-                }.Parse(rpar.Item2);
+                }.Parse(sp5.Item2);
+                    var sp6 = new SkipWhitespace().Parse(retType.Item2);
+                var newLine = new Char('\n').Parse(sp6.Item2);
                 var stmts = new Maybe(
-                    new Many(new Statement())
-                ).Parse(retType.Item2);
-                var endKeyword = new Word("end").Parse(stmts.Item2);
+                    new Many(
+                        new Create(TokenType.Node) {
+                            new SkipWhitespace(), new Statement(),
+                            new SkipWhitespace(), new Char('\n')
+                        }
+                    )
+                ).Parse(newLine.Item2);
+                    var sp7 = new SkipWhitespace().Parse(stmts.Item2);
+                var endKeyword = new Word("end").Parse(sp7.Item2);
                 
                 var funcDef = defKeyword.Item1 + fnKeyword.Item1 + lpar.Item1;
                 if(argList.Item1.type != TokenType.Failure) {
@@ -55,10 +68,13 @@ namespace GoodBasic {
         class TypeArgList : Parser {
             public (Token, string) Parse(string input) {
                 var typeName = new TypeName().Parse(input);
-                var name = new Ident().Parse(typeName.Item2);
+                    var sp1 = new SkipWhitespace().Parse(typeName.Item2);
+                var name = new Ident().Parse(sp1.Item2);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
-                        new Char(','), new TypeName(), new Ident()
+                        new SkipWhitespace(), new Char(','), 
+                        new SkipWhitespace(), new TypeName(),
+                        new SkipWhitespace(), new Ident()
                     }
                 ).Parse(name.Item2);
                 
@@ -86,18 +102,25 @@ namespace GoodBasic {
         class TypeName : Parser {
             public (Token, string) Parse(string input) {
                 var mutKeyword = new Maybe(new Word("mut")).Parse(input);
+                    var sp1 = new SkipWhitespace().Parse(mutKeyword.Item2);
                 var baseTypeName = new SelectFrom {
                     new Create(TokenType.TypeName) {
-                        new Word("fn"), new Char('('), new TypeList(),
-                        new Char(')'), new TypeName()
+                        new Word("fn"), new SkipWhitespace(), new Char('('),
+                        new SkipWhitespace(), new TypeList(),
+                        new SkipWhitespace(), new Char(')'),
+                        new SkipWhitespace(), new TypeName()
                     }, new Word("int"), new Word("float"), new Word("str"),
                     new Ident(),
                     new Create(TokenType.TypeName) {
-                        new Char('('), new TypeName(), new Char(')')
+                        new Char('('), new SkipWhitespace(), 
+                        new TypeName(), new SkipWhitespace(),
+                        new Char(')')
                     }, new Create(TokenType.TypeName) {
-                        new Char('['), new TypeName(), new Char(']')
+                        new Char('['), new SkipWhitespace(),
+                        new TypeName(), new SkipWhitespace(),
+                        new Char(']')
                     }
-                }.Parse(mutKeyword.Item2);
+                }.Parse(sp1.Item2);
                 
                 var typeName = baseTypeName.Item1;
                 if(mutKeyword.Item1.type != TokenType.Failure) {
@@ -119,7 +142,8 @@ namespace GoodBasic {
                 var suffix = new Maybe(
                     new Many(
                         new Create(TokenType.Node) {
-                            new Char(','), new TypeName()
+                            new SkipWhitespace(), new Char(','),
+                            new SkipWhitespace(), new TypeName()
                         }
                     )
                 ).Parse(firstType.Item2);
@@ -145,16 +169,23 @@ namespace GoodBasic {
         class CompDef : Parser {
             public (Token, string) Parse(string input) {
                 var defKeyword = new Word("def").Parse(input);
-                var compKeyword = new Word("comp").Parse(defKeyword.Item2);
-                var name = new Ident().Parse(compKeyword.Item2);
+                    var sp1 = new SkipWhitespace().Parse(defKeyword.Item2);
+                var compKeyword = new Word("comp").Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(compKeyword.Item2);
+                var name = new Ident().Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(name.Item2);
+                var newLine = new Char('\n').Parse(sp3.Item2);
                 var functions = new Maybe(
                     new Many(
                         new Create(TokenType.Node) {
-                            new TypeName(), new Ident()
+                            new SkipWhitespace(), new TypeName(),
+                            new SkipWhitespace(), new Ident(),
+                            new SkipWhitespace(), new Char('\n')
                         }
                     )
-                ).Parse(name.Item2);
-                var endKeyword = new Word("end").Parse(functions.Item2);
+                ).Parse(newLine.Item2);
+                    var sp4 = new SkipWhitespace().Parse(functions.Item2);
+                var endKeyword = new Word("end").Parse(sp4.Item2);
                 
                 var token = defKeyword.Item1 + compKeyword.Item1 + name.Item1;
                 if(functions.Item1.type != TokenType.Failure) {
@@ -178,12 +209,22 @@ namespace GoodBasic {
         class RecDef : Parser {
             public (Token, string) Parse(string input) {
                 var defKeyword = new Word("def").Parse(input);
-                var recKeyword = new Word("rec").Parse(defKeyword.Item2);
-                var name = new Ident().Parse(recKeyword.Item2);
+                    var sp1 = new SkipWhitespace().Parse(defKeyword.Item2);
+                var recKeyword = new Word("rec").Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(recKeyword.Item2);
+                var name = new Ident().Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(name.Item2);
+                var newLine = new Char('\n').Parse(sp3.Item2);
                 var functions = new Maybe(
-                    new Many(new MiniFuncDef())
-                ).Parse(name.Item2);
-                var endKeyword = new Word("end").Parse(functions.Item2);
+                    new Many(
+                        new Create(TokenType.FuncDef) {
+                            new SkipWhitespace(), new MiniFuncDef(),
+                            new SkipWhitespace(), new Char('\n')
+                        }
+                    )
+                ).Parse(newLine.Item2);
+                    var sp4 = new SkipWhitespace().Parse(functions.Item2);
+                var endKeyword = new Word("end").Parse(sp4.Item2);
                 
                 var token = defKeyword.Item1 + recKeyword.Item1 + name.Item1;
                 if(functions.Item1.type != TokenType.Failure) {
@@ -203,10 +244,14 @@ namespace GoodBasic {
         class MiniFuncDef : Parser {
             public (Token, string) Parse(string input) {
                 var name = new Ident().Parse(input);
-                var lpar = new Char('(').Parse(name.Item2);
-                var argList = new Maybe(new TypeArgList()).Parse(lpar.Item2);
-                var rpar = new Char(')').Parse(argList.Item2);
-                var typeName = new TypeName().Parse(rpar.Item2);
+                    var sp1 = new SkipWhitespace().Parse(name.Item2);
+                var lpar = new Char('(').Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(lpar.Item2);
+                var argList = new Maybe(new TypeArgList()).Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(argList.Item2);
+                var rpar = new Char(')').Parse(sp3.Item2);
+                    var sp4 = new SkipWhitespace().Parse(rpar.Item2);
+                var typeName = new TypeName().Parse(sp4.Item2);
                 
                 var token = name.Item1 + lpar.Item1;
                 if(argList.Item1.type != TokenType.Failure) {

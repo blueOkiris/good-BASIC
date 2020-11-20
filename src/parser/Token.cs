@@ -53,19 +53,19 @@ namespace GoodBasic {
                 if(a.type == b.type || a.type == TokenType.Node) {
                     result = new Token {
                         type = a.type,
-                        source = a.source + b.source,
+                        source = a.source + ' ' + b.source,
                         children = a | b
                     };
                 } else if(b.type == TokenType.Node) {
                     result = new Token {
                         type = b.type,
-                        source = a.source + b.source,
+                        source = a.source + ' ' + b.source,
                         children = a | b
                     };
                 } else {
                     result = new Token {
                         type = TokenType.Node,
-                        source = a.source + b.source,
+                        source = a.source + ' ' + b.source,
                         children = new List<Token> { a, b }
                     };
                 }

@@ -14,7 +14,8 @@ namespace GoodBasic {
                 }.Parse(input);
                 var secondary = new Maybe(
                     new Create(TokenType.Node) {
-                        new Char(';'), new Statement()
+                        new SkipWhitespace(), new Char(';'),
+                        new SkipWhitespace(), new Statement()
                     }
                 ).Parse(stmt.Item2);
                 
@@ -35,13 +36,17 @@ namespace GoodBasic {
         class Declaration : Parser {
             public (Token, string) Parse(string input) {
                 var letKeyword = new Word("let").Parse(input);
-                var typeName = new TypeName().Parse(letKeyword.Item2);
-                var name = new Ident().Parse(typeName.Item2);
+                    var sp1 = new SkipWhitespace().Parse(letKeyword.Item2);
+                var typeName = new TypeName().Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(typeName.Item2);
+                var name = new Ident().Parse(sp2.Item2);
+                    var sp3 = new SkipWhitespace().Parse(name.Item2);
                 var assignment = new Maybe(
                     new Create(TokenType.Assignment) {
-                        new Char('='), new Expr()
+                        new SkipWhitespace(), new Char('='),
+                        new SkipWhitespace(), new Expr()
                     }
-                ).Parse(name.Item2);
+                ).Parse(sp3.Item2);
                 
                 var decl = letKeyword.Item1 + typeName.Item1 + name.Item1;
                 if(assignment.Item1.type != TokenType.Failure) {
@@ -60,8 +65,10 @@ namespace GoodBasic {
         class Assignment : Parser {
             public (Token, string) Parse(string input) {
                 var varName = new Ident().Parse(input);
-                var equ = new Char('=').Parse(varName.Item2);
-                var expr = new Expr().Parse(equ.Item2);
+                    var sp1 = new SkipWhitespace().Parse(varName.Item2);
+                var equ = new Char('=').Parse(sp1.Item2);
+                    var sp2 = new SkipWhitespace().Parse(equ.Item2);
+                var expr = new Expr().Parse(sp2.Item2);
                 
                 var assignment = varName.Item1 + equ.Item1 + expr.Item1;
                 return (assignment, expr.Item2);
@@ -75,7 +82,8 @@ namespace GoodBasic {
         class Return : Parser {
             public (Token, string) Parse(string input) {
                 var retKeyword = new Word("return").Parse(input);
-                var expr = new Expr().Parse(retKeyword.Item2);
+                    var sp1 = new SkipWhitespace().Parse(retKeyword.Item2);
+                var expr = new Expr().Parse(sp1.Item2);
                 
                 var ret = retKeyword.Item1 + expr.Item1;
                 return (ret, expr.Item2);

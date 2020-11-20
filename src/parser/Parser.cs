@@ -96,7 +96,9 @@ namespace GoodBasic {
                 
                 foreach(var parser in subSteps) {
                     result = parser.Parse(currInp);
-                    
+                    if(result.Item1.type == TokenType.Failure) {
+                        continue;
+                    }
                     finalToken += result.Item1;
                     currInp = result.Item2;
                 }
@@ -324,6 +326,22 @@ namespace GoodBasic {
             public IEnumerator<Parser> GetEnumerator() {
                 yield return new Digit();
             }
+        }
+        
+        class Whitespace : Parser {
+            public (Token, string) Parse(string input) =>
+                new SelectFrom {
+                    new AnyCharExcept(" \t\r"), new Word("\\\n")
+                }.Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
+        }
+        
+        class SkipWhitespace : Parser {
+            public (Token, string) Parse(string input) =>
+                new Maybe(new Many(new Whitespace())).Parse(input);
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
         }
         
         class ParserException : Exception {

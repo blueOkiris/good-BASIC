@@ -10,7 +10,10 @@ namespace GoodBasic {
                 ).Parse(input);
                 var product = new Product().Parse(prefix.Item2);
                 var suffix = new Maybe(
-                    new SelectFrom { new Word("++"), new Word("--") }
+                    new Create(TokenType.Character) {
+                        new SkipWhitespace(),
+                        new SelectFrom { new Word("++"), new Word("--") }
+                    }
                 ).Parse(product.Item2);
                 
                 var expr = product.Item1;
@@ -36,9 +39,10 @@ namespace GoodBasic {
                 var prefix = new Summation().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
+                        new SkipWhitespace(),
                         new SelectFrom {
                             new Char('*'), new Char('/'), new Char('%')
-                        }, new Summation()
+                        }, new SkipWhitespace(), new Summation()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -61,8 +65,9 @@ namespace GoodBasic {
                 var prefix = new Shift().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
+                        new SkipWhitespace(),
                         new SelectFrom { new Char('+'), new Char('-') },
-                        new Shift()
+                        new SkipWhitespace(), new Shift()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -85,8 +90,9 @@ namespace GoodBasic {
                 var prefix = new Inequality().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
+                        new SkipWhitespace(),
                         new SelectFrom { new Word(">>"), new Word("<<") },
-                        new Inequality()
+                        new SkipWhitespace(), new Inequality()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -109,11 +115,11 @@ namespace GoodBasic {
                 var prefix = new Equality().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
+                        new SkipWhitespace(),
                         new SelectFrom {
                             new Char('<'), new Char('>'),
                             new Word("=="), new Word("!=")
-                        },
-                        new Equality()
+                        }, new SkipWhitespace(), new Equality()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -136,8 +142,9 @@ namespace GoodBasic {
                 var prefix = new MaskOff().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
+                        new SkipWhitespace(),
                         new SelectFrom { new Word("=="), new Word("!=") },
-                        new MaskOff()
+                        new SkipWhitespace(), new MaskOff()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -160,7 +167,8 @@ namespace GoodBasic {
                 var prefix = new Exclusive().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
-                        new Char('&'), new Exclusive()
+                        new SkipWhitespace(), new Char('&'),
+                        new SkipWhitespace(), new Exclusive()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -183,7 +191,8 @@ namespace GoodBasic {
                 var prefix = new MaskOn().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
-                        new Char('^'), new MaskOn()
+                        new SkipWhitespace(), new Char('^'),
+                        new SkipWhitespace(), new MaskOn()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -206,7 +215,8 @@ namespace GoodBasic {
                 var prefix = new Conjunction().Parse(input);
                 var suffix = new Maybe(
                     new Create(TokenType.Node) {
-                        new Char('|'), new Conjunction()
+                        new SkipWhitespace(), new Char('|'),
+                        new SkipWhitespace(), new Conjunction()
                     }
                 ).Parse(prefix.Item2);
                 
@@ -228,7 +238,10 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) {
                 var prefix = new Option().Parse(input);
                 var suffix = new Maybe(
-                    new Create(TokenType.Node) { new Word("&&"), new Option() }
+                    new Create(TokenType.Node) {
+                        new SkipWhitespace(), new Word("&&"),
+                        new SkipWhitespace(), new Option()
+                    }
                 ).Parse(prefix.Item2);
                 
                 var token = prefix.Item1;
@@ -249,7 +262,10 @@ namespace GoodBasic {
             public (Token, string) Parse(string input) {
                 var fac = new Factor().Parse(input);
                 var suffix = new Maybe(
-                    new Create(TokenType.Node) { new Word("||"), new Factor() }
+                    new Create(TokenType.Node) {
+                        new SkipWhitespace(), new Word("||"),
+                        new SkipWhitespace(), new Factor()
+                    }
                 ).Parse(fac.Item2);
                 
                 var option = fac.Item1;
