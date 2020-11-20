@@ -156,6 +156,11 @@ namespace GoodBasic {
                 }
                 ident.type = TokenType.Ident;
                 
+                // No keywords as identifiers
+                if(ParserSettings.Keywords.Contains(ident.source)) {
+                    throw new UnexpectedTypeException(Types());
+                }
+                
                 return (ident, followingChars.Item2);
             }
                 

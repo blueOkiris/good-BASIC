@@ -4,7 +4,17 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace GoodBasic {
-    namespace Parser {        
+    namespace Parser {
+        static class ParserSettings {
+            public static List<string> Keywords = new List<string> {
+                "import", "exports", "implements",
+                "def", "fn", "comp", "rec", "end",
+                "int", "float", "str", "mut",
+                "let", "return",
+                "call", "lambda", "data"
+            };
+        }
+        
         interface Parser : IEnumerable {
             (Token, string) Parse(string input);
             List<TokenType> Types();
