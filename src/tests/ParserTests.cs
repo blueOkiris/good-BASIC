@@ -73,9 +73,10 @@ namespace GoodBasic {
                         call print input
                     end
                     
-                    def fn extraFunc(int input)
+                    def fn extraFunc(int input) int
                         return input
-                    end";
+                    end
+                    ";
                 var result = new Module().Parse(code);
                 Console.WriteLine("Parsed {0}", result);
             }
