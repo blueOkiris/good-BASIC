@@ -13,7 +13,7 @@ namespace GoodBasic {
                     new Many(
                         new Create(TokenType.Import) {
                             new SkipWhitespace(), new Import(),
-                            new SkipWhitespace(), new Char('\n')
+                            new SkipWhitespace(), new Many(new Char('\n'))
                         }
                     )
                 ).Parse(input);
@@ -22,12 +22,12 @@ namespace GoodBasic {
                     var sp2 = new SkipWhitespace().Parse(export.Item2);
                 var implement = new Maybe(new Implement()).Parse(sp2.Item2);
                     var sp3 = new SkipWhitespace().Parse(implement.Item2);
-                var newLine = new Char('\n').Parse(sp3.Item2);
+                var newLine = new Many(new Char('\n')).Parse(sp3.Item2);
                 var definitions = new Maybe(
                     new Many(
                         new Create(TokenType.Definition) {
                             new SkipWhitespace(), new Definition(),
-                            new SkipWhitespace(), new Char('\n')
+                            new SkipWhitespace(), new Many(new Char('\n'))
                         }
                     )
                 ).Parse(newLine.Item2);

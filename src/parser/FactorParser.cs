@@ -84,11 +84,11 @@ namespace GoodBasic {
                     var sp4 = new SkipWhitespace().Parse(rpar.Item2);
                 var typeName = new TypeName().Parse(sp4.Item2);
                     var sp5 = new SkipWhitespace().Parse(typeName.Item2);
-                var newLine = new Char('\n').Parse(sp5.Item2);
+                var newLine = new Many(new Char('\n')).Parse(sp5.Item2);
                 var statements = new Maybe(
                     new Create(TokenType.Node) {
                         new SkipWhitespace(), new Many(new Statement()),
-                        new SkipWhitespace(), new Char('\n')
+                        new SkipWhitespace(), new Many(new Char('\n'))
                     }
                 ).Parse(newLine.Item2);
                     var sp6 = new SkipWhitespace().Parse(statements.Item2);

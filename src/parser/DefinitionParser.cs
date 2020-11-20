@@ -34,12 +34,12 @@ namespace GoodBasic {
                     new TypeName(), new Word("void")
                 }.Parse(sp5.Item2);
                     var sp6 = new SkipWhitespace().Parse(retType.Item2);
-                var newLine = new Char('\n').Parse(sp6.Item2);
+                var newLine = new Many(new Char('\n')).Parse(sp6.Item2);
                 var stmts = new Maybe(
                     new Many(
                         new Create(TokenType.Node) {
                             new SkipWhitespace(), new Statement(),
-                            new SkipWhitespace(), new Char('\n')
+                            new SkipWhitespace(), new Many(new Char('\n'))
                         }
                     )
                 ).Parse(newLine.Item2);
@@ -174,13 +174,13 @@ namespace GoodBasic {
                     var sp2 = new SkipWhitespace().Parse(compKeyword.Item2);
                 var name = new Ident().Parse(sp2.Item2);
                     var sp3 = new SkipWhitespace().Parse(name.Item2);
-                var newLine = new Char('\n').Parse(sp3.Item2);
+                var newLine = new Many(new Char('\n')).Parse(sp3.Item2);
                 var functions = new Maybe(
                     new Many(
                         new Create(TokenType.Node) {
                             new SkipWhitespace(), new TypeName(),
                             new SkipWhitespace(), new Ident(),
-                            new SkipWhitespace(), new Char('\n')
+                            new SkipWhitespace(), new Many(new Char('\n'))
                         }
                     )
                 ).Parse(newLine.Item2);
@@ -214,12 +214,12 @@ namespace GoodBasic {
                     var sp2 = new SkipWhitespace().Parse(recKeyword.Item2);
                 var name = new Ident().Parse(sp2.Item2);
                     var sp3 = new SkipWhitespace().Parse(name.Item2);
-                var newLine = new Char('\n').Parse(sp3.Item2);
+                var newLine = new Many(new Char('\n')).Parse(sp3.Item2);
                 var functions = new Maybe(
                     new Many(
                         new Create(TokenType.FuncDef) {
                             new SkipWhitespace(), new MiniFuncDef(),
-                            new SkipWhitespace(), new Char('\n')
+                            new SkipWhitespace(), new Many(new Char('\n'))
                         }
                     )
                 ).Parse(newLine.Item2);

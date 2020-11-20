@@ -58,6 +58,11 @@ namespace GoodBasic {
                     }
                 }
             }
+            
+            public static void ReadmeExample() {
+                string code = 
+@"";
+            }
         }
     }
 }
