@@ -145,12 +145,13 @@ Now to actually write up an ebnf grammar to follow while writing the parser
                     { <definition> /\n+/ }
 <import>        ::= 'import' <ident>
 <export>        ::= 'exports' <ident-list>
-<implement>     ::= 'implements' <ident-list>
+<implement>     ::= 'implements' <mem-acc-list>
 <ident-list>    ::= <ident> { ',' <ident> }
+<mem-acc-list>  ::= <mem=acc> { ',' <mem=acc> }
 
 <definition>    ::= <func-def> | <comp-def> | <rec-def>
 <func-def>      ::= 'def' 'fn' <ident> '(' [ <type-arg-list> ] ')' 
-                    ( <type-name> | 'void' ) /\n+/
+                            ( <type-name> | 'void' ) /\n+/
                         { <statement> /\n+/ } /\n+/
                     '<end>'
 <type-arg-list> ::= <type-name> <ident> { ',' <type-name> <ident> }

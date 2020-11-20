@@ -84,3 +84,10 @@ The lack of true interfaces in C++ low-key sucks. I want to be able to pass a ch
 Time to start over again. This time in C# (though using dotnet core native compilation)
 
 It will basically be what I was already doing in the new C++ version
+
+## Giving Up
+
+Alright. I implemented all the way to the module level. It's SOOOOO slow. My previous parsing methods I've used were so much better.
+
+I'm starting over. Doing it my way.
+I'll stay in c#

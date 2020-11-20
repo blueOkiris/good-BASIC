@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <DefaultItemExcludes>
-      $(DefaultItemExcludes);old/**
-    </DefaultItemExcludes>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp5.0</TargetFramework>
     <RootNamespace>good_basic</RootNamespace>
