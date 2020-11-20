@@ -24,7 +24,9 @@ namespace GoodBasic {
                     var sp1 = new SkipWhitespace().Parse(defKeyword.Item2);
                 var fnKeyword = new Word("fn").Parse(sp1.Item2);
                     var sp2 = new SkipWhitespace().Parse(fnKeyword.Item2);
-                var lpar = new Char('(').Parse(sp2.Item2);
+                var name = new Ident().Parse(sp2.Item2);
+                    var sp8 = new SkipWhitespace().Parse(name.Item2);
+                var lpar = new Char('(').Parse(sp8.Item2);
                     var sp3 = new SkipWhitespace().Parse(lpar.Item2);
                 var argList = new Maybe(new TypeArgList()).Parse(sp3.Item2);
                     var sp4 = new SkipWhitespace().Parse(argList.Item2);
@@ -46,7 +48,9 @@ namespace GoodBasic {
                     var sp7 = new SkipWhitespace().Parse(stmts.Item2);
                 var endKeyword = new Word("end").Parse(sp7.Item2);
                 
-                var funcDef = defKeyword.Item1 + fnKeyword.Item1 + lpar.Item1;
+                var funcDef = 
+                    defKeyword.Item1 + fnKeyword.Item1 + name.Item1
+                    + lpar.Item1;
                 if(argList.Item1.type != TokenType.Failure) {
                     funcDef += argList.Item1;
                 }
@@ -71,11 +75,13 @@ namespace GoodBasic {
                     var sp1 = new SkipWhitespace().Parse(typeName.Item2);
                 var name = new Ident().Parse(sp1.Item2);
                 var suffix = new Maybe(
-                    new Create(TokenType.Node) {
-                        new SkipWhitespace(), new Char(','), 
-                        new SkipWhitespace(), new TypeName(),
-                        new SkipWhitespace(), new Ident()
-                    }
+                    new Many(
+                        new Create(TokenType.Node) {
+                            new SkipWhitespace(), new Char(','), 
+                            new SkipWhitespace(), new TypeName(),
+                            new SkipWhitespace(), new Ident()
+                        }
+                    )
                 ).Parse(name.Item2);
                 
                 var typeArgList = typeName.Item1 + name.Item1;

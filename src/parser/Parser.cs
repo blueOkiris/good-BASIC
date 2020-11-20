@@ -7,7 +7,7 @@ namespace GoodBasic {
     namespace Parser {
         static class ParserSettings {
             public static List<string> Keywords = new List<string> {
-                "import", "exports", "implements",
+                "imports", "exports", "implements",
                 "def", "fn", "comp", "rec", "end",
                 "int", "float", "str", "mut",
                 "let", "return",
@@ -226,6 +226,31 @@ namespace GoodBasic {
             }
         }
         
+        class AnyCharIn : Parser {
+            private string str;
+            public AnyCharIn(string str) => this.str = str;
+            
+            public (Token, string) Parse(string input) {
+                if(input.Length < 1 || !str.Contains(input[0])) {
+                    throw new UnexpectedTypeException(Types());
+                } else {
+                    return (
+                        new Token {
+                            type = TokenType.Character,
+                            source = input.Substring(0, 1),
+                            children = new List<Token>()
+                        }, input.Substring(1)
+                    );
+                }
+            }
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.Character };
+
+            public IEnumerator<Parser> GetEnumerator() {
+                yield return new AnyCharExcept(str);
+            }
+        }
+        
         class Char : Parser {
             private char c;
             public Char(char c) => this.c = c;
@@ -331,7 +356,7 @@ namespace GoodBasic {
         class Whitespace : Parser {
             public (Token, string) Parse(string input) =>
                 new SelectFrom {
-                    new AnyCharExcept(" \t\r"), new Word("\\\n")
+                    new AnyCharIn(" \t\r"), new Word("\\\n")
                 }.Parse(input);
             public List<TokenType> Types() =>
                 new List<TokenType> { TokenType.Character };

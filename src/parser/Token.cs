@@ -11,7 +11,7 @@ namespace GoodBasic {
             Shift, Inequality, Equality, MaskOff, Exclusive, MaskOn,
             Conjunction, Option, Factor, MemberAccess, FuncCall, Lambda,
             CompOrRecDec, Ident, Float, Int, String, Character, Digit,
-            TypeList,
+            TypeList, MemberAccList,
             Node, Failure
         }
         
@@ -26,15 +26,40 @@ namespace GoodBasic {
                 children = new List<Token>()
             };
             
-            public override string ToString() {
+            private string str(int spaces) {
                 var tokStr = new StringBuilder();
-                tokStr.Append("{ ").Append(TypeStr(type)).Append(", ");
-                tokStr.Append(source).Append(", { ");
-                foreach(var child in children) {
-                    tokStr.Append(child.ToString()).Append(" ");
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
                 }
-                tokStr.Append("} }");
+                tokStr.Append("Token {\n");
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
+                }
+                tokStr.Append("  ").Append(TypeStr(type)).Append(",\n");
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
+                }
+                tokStr.Append("  ").Append(source).Append(",\n");
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
+                }
+                tokStr.Append("  {\n");
+                foreach(var child in children) {
+                    tokStr.Append(child.str(spaces + 2)).Append("\n");
+                }
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
+                }
+                tokStr.Append("  }\n");
+                for(int i = 0; i < spaces; i++) {
+                    tokStr.Append("  ");
+                }
+                tokStr.Append("}");
                 return tokStr.ToString();
+            }
+            
+            public override string ToString() {
+                return str(0);
             }
             
             public static List<Token> operator |(Token a, Token b) {
@@ -50,22 +75,28 @@ namespace GoodBasic {
             
             public static Token operator +(Token a, Token b) {
                 Token result;
-                if(a.type == b.type || a.type == TokenType.Node) {
+                
+                var newSrc = a.source + b.source;
+                if(a.type == b.type && a.type != TokenType.Node) {
                     result = new Token {
-                        type = a.type,
-                        source = a.source + ' ' + b.source,
-                        children = a | b
+                        type = a.type, source = newSrc, children = a | b
+                    };
+                } else if(a.type == TokenType.Node) {
+                    var newChildren = a.children;
+                    newChildren.Add(b);
+                    result = new Token {
+                        type = a.type, source = newSrc, children = newChildren
                     };
                 } else if(b.type == TokenType.Node) {
+                    var newChildren = b.children;
+                    newChildren.Add(a);
                     result = new Token {
-                        type = b.type,
-                        source = a.source + ' ' + b.source,
-                        children = a | b
+                        type = b.type, source = newSrc, children = newChildren
                     };
                 } else {
                     result = new Token {
                         type = TokenType.Node,
-                        source = a.source + ' ' + b.source,
+                        source = newSrc,
                         children = new List<Token> { a, b }
                     };
                 }
@@ -116,8 +147,9 @@ namespace GoodBasic {
                     case TokenType.Character: return "char";
                     case TokenType.Digit: return "digit";
                     case TokenType.TypeList: return "type-list";
+                    case TokenType.MemberAccList: return "mem-acc-list";
                     case TokenType.Node: return "node";
-                    case TokenType.Failure: return "none";
+                    case TokenType.Failure: return "fail";
                     default: return "";
                 }
             }

@@ -28,7 +28,7 @@ namespace GoodBasic {
                 var name = new Ident().Parse(input);
                 var colon = new Char(':').Parse(name.Item2);
                 var member = new SelectFrom {
-                    new Ident(), new MemberAcc()
+                    new MemberAcc(), new Ident()
                 }.Parse(colon.Item2);
                 
                 // Combine
@@ -266,11 +266,13 @@ namespace GoodBasic {
                 // Parse string items
                 var startQuote = new Char('\'').Parse(input);
                 var middleChars = new Maybe(
-                    new SelectFrom {
-                        new Create(TokenType.Character) {
-                            new Char('\\'), new AnyChar()
-                        }, new AnyCharExcept("\\'")
-                    }
+                    new Many(
+                        new SelectFrom {
+                            new Create(TokenType.Character) {
+                                new Char('\\'), new AnyChar()
+                            }, new AnyCharExcept("\\'")
+                        }
+                    )
                 ).Parse(startQuote.Item2);
                 var endQuote = new Char('\'').Parse(middleChars.Item2);
                 

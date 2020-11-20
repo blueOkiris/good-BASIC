@@ -21,13 +21,21 @@ namespace GoodBasic {
                 var export = new Export().Parse(sp1.Item2);
                     var sp2 = new SkipWhitespace().Parse(export.Item2);
                 var implement = new Maybe(new Implement()).Parse(sp2.Item2);
-                    var sp3 = new SkipWhitespace().Parse(implement.Item2);
-                var newLine = new Many(new Char('\n')).Parse(sp3.Item2);
+                var newLine = new Many(
+                    new Create(TokenType.Character) {
+                        new SkipWhitespace(), new Char('\n'),
+                        new SkipWhitespace()
+                    }
+                ).Parse(implement.Item2);
                 var definitions = new Maybe(
                     new Many(
                         new Create(TokenType.Definition) {
                             new SkipWhitespace(), new Definition(),
-                            new SkipWhitespace(), new Many(new Char('\n'))
+                            new Many(
+                                new Create(TokenType.Character) {
+                                    new SkipWhitespace(), new Char('\n')
+                                }
+                            )
                         }
                     )
                 ).Parse(newLine.Item2);
@@ -54,7 +62,7 @@ namespace GoodBasic {
         class Import : Parser {
             public (Token, string) Parse(string input) =>
                 new Create(TokenType.Import) {
-                    new Word("import"), new SkipWhitespace(), new Ident()
+                    new Word("imports"), new SkipWhitespace(), new Ident()
                 }.Parse(input);
             
             public List<TokenType> Types() =>
@@ -78,14 +86,14 @@ namespace GoodBasic {
                 new List<TokenType> { TokenType.Export };
         }
         
-        // <implement> ::= 'implements' <ident-list>
+        // <implement> ::= 'implements' <mem-acc-list>
         class Implement : Parser {
             public (Token, string) Parse(string input) {
                 var implementKeyword = new Word("implements").Parse(input);
                     var sp1 = new SkipWhitespace().Parse(
                         implementKeyword.Item2
                     );
-                var list = new IdentList().Parse(sp1.Item2);
+                var list = new MemberAccList().Parse(sp1.Item2);
                 
                 var implement = implementKeyword.Item1 + list.Item1;
                 implement.type = TokenType.Implement;
@@ -97,15 +105,43 @@ namespace GoodBasic {
                 new List<TokenType> { TokenType.Implement };
         }
         
+        // <mem-acc-list> ::= <member-acc> { ',' <member-acc> }
+        class MemberAccList : Parser {
+            public (Token, string) Parse(string input) {
+                var name = new MemberAcc().Parse(input);
+                var suffix = new Maybe(
+                    new Many(
+                        new Create(TokenType.Node) {
+                            new SkipWhitespace(), new Char(','),
+                            new SkipWhitespace(), new MemberAcc()
+                        }
+                    )
+                ).Parse(name.Item2);
+                
+                var list = name.Item1;
+                if(suffix.Item1.type != TokenType.Failure) {
+                    list += suffix.Item1;
+                }
+                list.type = TokenType.MemberAccList;
+                
+                return (list, suffix.Item2);
+            }
+            
+            public List<TokenType> Types() =>
+                new List<TokenType> { TokenType.MemberAccList };
+        }
+        
         // <ident-list> ::= <ident> { ',' <ident> }
         class IdentList : Parser {
             public (Token, string) Parse(string input) {
                 var name = new Ident().Parse(input);
                 var suffix = new Maybe(
-                    new Create(TokenType.Node) {
-                        new SkipWhitespace(), new Char(','),
-                        new SkipWhitespace(), new Ident()
-                    }
+                    new Many(
+                        new Create(TokenType.Node) {
+                            new SkipWhitespace(), new Char(','),
+                            new SkipWhitespace(), new Ident()
+                        }
+                    )
                 ).Parse(name.Item2);
                 
                 var list = name.Item1;

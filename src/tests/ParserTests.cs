@@ -66,11 +66,11 @@ namespace GoodBasic {
                         implements MyInterface:MyInterface1
                     
                     def fn printHelloWorld() Void
-                        print 'Hello, world!\n'
+                        call print 'Hello, world!\n'
                     end
                     
                     def fn printWhatever(str input) Void
-                        print input
+                        call print input
                     end
                     
                     def fn extraFunc(int input)
