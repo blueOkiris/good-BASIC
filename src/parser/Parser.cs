@@ -29,15 +29,27 @@ namespace GoodBasic {
             
             public static List<RawToken> Lex(string code) {
                 var tokens = new List<RawToken>();
-                for(int i = 0; i < code.Length; i++) {
+                for(int i = 0, line = 1, col = 1; i < code.Length; i++) {
                     if(code[i] == '\n') {
-                        tokens.Add(new RawToken(TokenType.NewLine, "\n"));
+                        tokens.Add(
+                            new RawToken(TokenType.NewLine, "\n", line, col)
+                        );
+                        line++;
+                        col = 1;
                         continue;
                     } else if(code[i] == '\\'
                             && i + 1 < code.Length && code[i + 1] == '\n') {
+                        col += 2;
+                        if(code[i + 1] == '\n') {
+                            line++;
+                            col = 1;
+                        } else {
+                            col += 2;
+                        }
                         i++;
                         continue;
                     } else if(char.IsWhiteSpace(code[i])) {
+                        col++;
                         continue;
                     }
                     
@@ -52,34 +64,47 @@ namespace GoodBasic {
                                 Keywords.Contains(identResult.Value) ?
                                     TokenType.Keyword :
                                     TokenType.Identifier,
-                                identResult.Value
+                                identResult.Value, line, col
                             )
                         );
                         i += identResult.Value.Length + 1;
+                        col += identResult.Value.Length + 1;
                     } else if(code.StartsWith(floatResult.Value)
                             && floatResult.Value != "") {
                         tokens.Add(
                             new RawToken(
-                                TokenType.FloatingPoint, floatResult.Value
+                                TokenType.FloatingPoint, floatResult.Value,
+                                line, col
                             )
                         );
                         i += floatResult.Value.Length + 1;
+                        col += floatResult.Value.Length + 1;
                     } else if(code.StartsWith(intResult.Value)
                             && intResult.Value != "") {
                         tokens.Add(
-                            new RawToken(TokenType.Integer, intResult.Value)
+                            new RawToken(
+                                TokenType.Integer, intResult.Value, line, col
+                            )
                         );
                         i += intResult.Value.Length + 1;
+                        col += intResult.Value.Length + 1;
                     } else if(code.StartsWith(strResult.Value)
                             && strResult.Value != "") {
                         tokens.Add(
-                            new RawToken(TokenType.String, strResult.Value)
+                            new RawToken(
+                                TokenType.String, strResult.Value, line, col
+                            )
                         );
                         i += strResult.Value.Length + 1;
+                        col += strResult.Value.Length + 1;
                     } else {
                         tokens.Add(
-                            new RawToken(TokenType.Character, "" + code[i])
+                            new RawToken(
+                                TokenType.Character, "" + code[i],
+                                line, col
+                            )
                         );
+                        col++;
                     }
                 }
                 return tokens;

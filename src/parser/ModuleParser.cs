@@ -40,7 +40,9 @@ namespace GoodBasic {
                     i++;
                 }
                 
-                return new CompoundToken(TokenType.Module, children);
+                return new CompoundToken(
+                    TokenType.Module, children, children[0].Line()
+                );
             }
         }
     }
