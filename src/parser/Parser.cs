@@ -53,6 +53,13 @@ namespace GoodBasic {
                         line++;
                         col = 1 - 1;
                         continue;
+                    } else if(ind + 1 < code.Length
+                            && code[ind] == '\\' && code[ind + 1] == '\n') {
+                        ind ++;
+                        
+                        line++;
+                        col = 1 - 1;
+                        continue;
                     } else if(char.IsWhiteSpace(code[ind])) {
                         continue;
                     }
@@ -118,7 +125,7 @@ namespace GoodBasic {
                 
                 // Get the exports and implements line
                 var export = parseExport();
-                children.Add(parseExport());
+                children.Add(export);
                 if(lexInd >= lexemes.Length) {
                     throw new UnexpectedEOFException(export.Line());
                 } else if((string) lexemes[lexInd].Source() == "implements") {
