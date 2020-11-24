@@ -44,6 +44,26 @@ namespace GoodBasic {
                     TokenType.Module, children, children[0].Line()
                 );
             }
+            
+            private static (CompoundToken, int) parseImport(
+                    List<RawToken> tokens) {
+                
+            }
+            
+            private static (CompoundToken, int) parseExport(
+                    List<RawToken> tokens) {
+                
+            }
+            
+            private static (CompoundToken, int) parseImplement(
+                    List<RawToken> tokens) {
+                
+            }
+            
+            private static (CompoundToken, int) parseDefinition(
+                    List<RawToken> tokens) {
+                
+            }
         }
     }
 }
