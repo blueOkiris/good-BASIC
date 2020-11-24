@@ -16,14 +16,18 @@ namespace GoodBasic {
             Statement, Declaration, Assignment, Return,
             Expr, Product, Summation, Shift, Inequality, Equality, MaskOff,
             Exclusive, MaskOn, Conjunction, Option,
-            Factor, CompOrRecDec, Lambda, FuncCall, MemberAcc,
-            Node
+            Factor, CompOrRecDec, Lambda, FuncCall, MemberAcc
         }
         
         partial class Parser {
             private static Dictionary<Regex, TokenType> regexesToTokenTypes =
                     new Dictionary<Regex, TokenType>() {
                 {
+                    new Regex(
+                        @"imports|exports|implements|def|fn|comp|rec|end|"
+                            + @"lambda|data|int|float|str|mut|call"
+                    ), TokenType.Keyword
+                }, {
                     new Regex(@"[A-Za-z_][A-Za-z0-9_]+", RegexOptions.Compiled),
                     TokenType.Identifier
                 }, {
@@ -46,8 +50,6 @@ namespace GoodBasic {
             TokenType Type();
             object Source();
             int Line();
-            
-            Token Combined(Token other);
         }
         
         struct RawToken : Token {
@@ -79,25 +81,6 @@ namespace GoodBasic {
                 tokStr.Append(line).Append(":").Append(col).Append(" }");
                 return tokStr.ToString();
             }
-            
-            public Token Combined(Token other) {
-                if(other is RawToken && other.Type() == type) {
-                    return new CompoundToken(
-                        type, new List<Token> { this, other }, line
-                    );
-                } else if(other is RawToken) {
-                    return new CompoundToken(
-                        TokenType.Node, new List<Token> { this, other }, line
-                    );
-                } else {
-                    var newChildren = new List<Token>();
-                    newChildren.Add(this);
-                    foreach(var child in other.Source() as List<Token>) {
-                        newChildren.Add(child);
-                    }
-                    return new CompoundToken(other.Type(), newChildren, line);
-                }
-            }
         }
         
         class CompoundToken : Token {
@@ -108,7 +91,10 @@ namespace GoodBasic {
             public CompoundToken(
                     TokenType type, List<Token> children, int line) {
                 this.type = type;
-                this.children = children;
+                this.children =  new List<Token>();
+                foreach(var child in children) {
+                    this.children.Add(child);
+                }
                 this.line = line;
             }
             
@@ -116,29 +102,33 @@ namespace GoodBasic {
             public object Source() => children;
             public int Line() => line;
             
-            public Token Combined(Token other) {
-                if(other is CompoundToken && other.Type() == type) {
-                    var newChildren = children;
-                    foreach(var child in other.Source() as List<Token>) {
-                        newChildren.Add(child);
-                    }
-                    return new CompoundToken(
-                        type, newChildren, line
-                    );
-                } else if(other is CompoundToken) {
-                    return new CompoundToken(
-                        TokenType.Node, new List<Token> { this, other }, line
-                    );
-                } else {
-                    var newChildren = new List<Token>();
-                    foreach(var child in children) {
-                        newChildren.Add(child);
-                    }
-                    newChildren.Add(other);
-                    return new CompoundToken(
-                        type, newChildren, line
-                    );
+            private string tokStr(int indent) {
+                var str = new StringBuilder();
+                for(int i = 0; i < indent; i++) {
+                    str.Append("|--");
                 }
+                str.Append("Compound { ");
+                str.Append(type).Append(", ").Append(line).Append(", {\n");
+                foreach(var child in children) {
+                    if(child is RawToken) {
+                        for(int i = 0; i < indent + 1; i++) {
+                            str.Append("|--");
+                        }
+                        str.Append(child).Append("\n");
+                    } else {
+                        str.Append((child as CompoundToken).tokStr(indent + 1));
+                        str.Append("\n");
+                    }
+                }
+                for(int i = 0; i < indent; i++) {
+                    str.Append("|--");
+                }
+                str.Append("}");
+                return str.ToString();
+            }
+            
+            public override string ToString() {
+                return tokStr(0);
             }
         }
     }

@@ -5,8 +5,9 @@ namespace GoodBasic {
     namespace Parser {        
         partial class Parser {
             private string code;
-            private int codeInd;
             private RawToken[] lexemes;
+            
+            private int lexInd;
             private CompoundToken ast;
             
             private bool lexed;
@@ -50,7 +51,7 @@ namespace GoodBasic {
                             new RawToken(TokenType.NewLine, "\n", line, col)
                         );
                         line++;
-                        col = 1;
+                        col = 1 - 1;
                         continue;
                     } else if(char.IsWhiteSpace(code[ind])) {
                         continue;
@@ -86,7 +87,75 @@ namespace GoodBasic {
             }
             
             private void parseLexemes() {
+                var children = new List<Token>();
+                lexInd = 0;
                 
+                /*
+                 * <module> ::= { <import> } /\n+/
+                 *              <export> [ <implement> ] /\n+/
+                 *              { <definition> /\n+/ }
+                 */
+                
+                // Get all the imports
+                while(lexInd > lexemes.Length
+                        && (string) lexemes[lexInd].Source() == "imports") {
+                    var import = parseImport();
+                    if(lexInd < lexemes.Length) {
+                        throw new UnexpectedEOFException(import.Line());
+                    } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
+                        throw new UnexpectedTokenException(
+                            lexemes[lexInd].Type(),
+                            new TokenType[] { TokenType.NewLine },
+                            import.Line()
+                        );
+                    }
+                    var newLine = lexemes[lexInd];
+                    lexInd++;
+                    
+                    children.Add(import);
+                    children.Add(newLine);
+                }
+                
+                // Get the exports and implements line
+                var export = parseExport();
+                children.Add(parseExport());
+                if(lexInd < lexemes.Length) {
+                    throw new UnexpectedEOFException(export.Line());
+                } else if((string) lexemes[lexInd].Source() == "implements") {
+                    children.Add(parseImplement()); // Optional, hence if stmt
+                }
+                if(lexInd < lexemes.Length) {
+                    throw new UnexpectedEOFException(export.Line());
+                } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
+                    throw new UnexpectedTokenException(
+                        lexemes[lexInd].Type(),
+                        new TokenType[] { TokenType.NewLine },
+                        export.Line()
+                    );
+                }
+                children.Add(lexemes[lexInd]);
+                lexInd++;
+                
+                // Finally, parse definitions
+                while(lexInd < lexemes.Length) {
+                    var definition = parseDefinition();
+                    if(lexInd < lexemes.Length) {
+                        throw new UnexpectedEOFException(definition.Line());
+                    } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
+                        throw new UnexpectedTokenException(
+                            lexemes[lexInd].Type(),
+                            new TokenType[] { TokenType.NewLine },
+                            definition.Line()
+                        );
+                    }
+                    var newLine3 = lexemes[lexInd];
+                    lexInd++;
+                    
+                    children.Add(definition);
+                    children.Add(newLine3);
+                }
+                
+                ast = new CompoundToken(TokenType.Module, children, 1);
             }
         }
     }
