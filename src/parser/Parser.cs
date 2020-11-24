@@ -14,13 +14,13 @@ namespace GoodBasic {
             private bool parsed;
             
             public Parser(string code) {
-                this.code = code;
+                this.code = code.ToLower();
                 lexed = false;
                 parsed = false;
             }
             
             public void Reset(string newCode) {
-                code = newCode;
+                code = newCode.ToLower();
                 lexed = false;
                 parsed = false;
             }

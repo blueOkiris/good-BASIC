@@ -25,7 +25,7 @@ namespace GoodBasic {
                 {
                     new Regex(
                         @"imports|exports|implements|def|fn|comp|rec|end|"
-                            + @"lambda|data|int|float|str|mut|call"
+                            + @"lambda|data|int|float|str|mut|call|void"
                     ), TokenType.Keyword
                 }, {
                     new Regex(@"[A-Za-z_][A-Za-z0-9_]+", RegexOptions.Compiled),
