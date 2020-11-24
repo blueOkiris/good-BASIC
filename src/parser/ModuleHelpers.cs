@@ -73,10 +73,51 @@ namespace GoodBasic {
                 );
             }
             
+            // <definition> ::= <func-def> | <comp-def> | <rec-def>
             private CompoundToken parseDefinition() {
-                return new CompoundToken(
-                    TokenType.Definition, new List<Token> {}, -1
-                );
+                if(lexInd >= lexemes.Length) {
+                    throw new UnexpectedEOFException(-1); // shouldn't happen
+                } else if((string) lexemes[lexInd].Source() != "def") {
+                    throw new UnexpectedTokenException(
+                        lexemes[lexInd].Type(),
+                        new TokenType[] { TokenType.Keyword },
+                        lexemes[lexInd].Line()
+                    );
+                } else if(lexInd + 1 >= lexemes.Length) {
+                    throw new UnexpectedEOFException(lexemes[lexInd].Line());
+                }
+                
+                switch((string) lexemes[lexInd + 1].Source()) {
+                    case "fn":
+                        return new CompoundToken(
+                            TokenType.Definition,
+                            new List<Token> {
+                                parseFuncDef()
+                            }, lexemes[lexInd].Line()
+                        );
+                    case "comp":
+                        return new CompoundToken(
+                            TokenType.Definition,
+                            new List<Token> {
+                                parseCompDef()
+                            }, lexemes[lexInd].Line()
+                        );
+                    case "rec":
+                        return new CompoundToken(
+                            TokenType.Definition,
+                            new List<Token> {
+                                parseRecDef()
+                            }, lexemes[lexInd].Line()
+                        );
+                    default:
+                        throw new UnexpectedTokenException(
+                            TokenType.Keyword,
+                            new TokenType[] {
+                                TokenType.FuncDef, TokenType.CompDef,
+                                TokenType.RecDef
+                            }, lexemes[lexInd].Line()
+                        );
+                }
             }
             
             // <ident-list> ::= <ident> { "," <ident> }

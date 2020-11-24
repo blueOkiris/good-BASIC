@@ -116,8 +116,8 @@ namespace GoodBasic {
                             import.Line()
                         );
                     }
-                    var newLine = lexemes[lexInd];
-                    lexInd++;
+                    var newLine = lexemes[lexInd++];
+                    eatNewLines();
                     
                     children.Add(import);
                     children.Add(newLine);
@@ -140,8 +140,8 @@ namespace GoodBasic {
                         export.Line()
                     );
                 }
-                children.Add(lexemes[lexInd]);
-                lexInd++;
+                children.Add(lexemes[lexInd++]);
+                eatNewLines();
                 
                 // Finally, parse definitions
                 while(lexInd < lexemes.Length) {
@@ -155,14 +155,21 @@ namespace GoodBasic {
                             definition.Line()
                         );
                     }
-                    var newLine3 = lexemes[lexInd];
-                    lexInd++;
+                    var newLine3 = lexemes[lexInd++];
+                    eatNewLines();
                     
                     children.Add(definition);
                     children.Add(newLine3);
                 }
                 
                 ast = new CompoundToken(TokenType.Module, children, 1);
+            }
+            
+            private void eatNewLines() {
+                while(lexInd < lexemes.Length
+                        && lexemes[lexInd].Type() == TokenType.NewLine) {
+                    lexInd++;
+                }
             }
         }
     }
