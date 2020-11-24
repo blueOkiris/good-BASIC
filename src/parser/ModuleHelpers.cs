@@ -34,6 +34,7 @@ namespace GoodBasic {
                 );
             }
             
+            // <export> ::= "exports" <ident-list>
             private CompoundToken parseExport() {
                 if(lexInd >= lexemes.Length) {
                     throw new UnexpectedEOFException(-1); // shouldn't happen
@@ -52,9 +53,23 @@ namespace GoodBasic {
                 );
             }
             
+            // <implement> ::= "implements" <mem-acc-list>
             private CompoundToken parseImplement() {
+                if(lexInd >= lexemes.Length) {
+                    throw new UnexpectedEOFException(-1); // shouldn't happen
+                } else if((string) lexemes[lexInd].Source() != "implements") {
+                    throw new UnexpectedTokenException(
+                        lexemes[lexInd].Type(),
+                        new TokenType[] { TokenType.Keyword },
+                        lexemes[lexInd].Line()
+                    );
+                }
+                var implementsKeyword = lexemes[lexInd++];
+                var list = parseMemAccList();
                 return new CompoundToken(
-                    TokenType.Implement, new List<Token> {}, -1
+                    TokenType.Export,
+                    new List<Token> { implementsKeyword, list },
+                    implementsKeyword.Line()
                 );
             }
             
@@ -64,6 +79,7 @@ namespace GoodBasic {
                 );
             }
             
+            // <ident-list> ::= <ident> { "," <ident> }
             private CompoundToken parseIdentList() {
                 if(lexInd >= lexemes.Length) {
                     throw new UnexpectedEOFException(-1); // shouldn't happen
@@ -98,6 +114,26 @@ namespace GoodBasic {
                 
                 return new CompoundToken(
                     TokenType.IdentList, children, firstIdent.Line()
+                );
+            }
+            
+            // <mem-acc-list> ::= <mem-acc> { "," <mem-acc> }
+            private CompoundToken parseMemAccList() {
+                var first = parseMemAcc();
+                
+                var children = new List<Token>();
+                children.Add(first);
+                while(lexInd < lexemes.Length
+                        && (string) lexemes[lexInd].Source() == ",") {
+                    var comma = lexemes[lexInd++];
+                    var next = parseMemAcc();
+                    
+                    children.Add(comma);
+                    children.Add(next);
+                }
+                
+                return new CompoundToken(
+                    TokenType.MemAccList, children, first.Line()
                 );
             }
         }
