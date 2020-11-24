@@ -22,12 +22,25 @@ end
 ";
             
             public static void TestLex() {
+                Console.WriteLine("Testing lexer...");
                 var parser = new Parser.Parser(exampleModule1);
                 var lexemes = parser.Lexemes();
-                
                 foreach(var lexeme in lexemes) {
                     Console.WriteLine(lexeme);
                 }
+                Console.WriteLine("Done testing lexer...");
+            }
+            
+            public static void TestParse() {
+                Console.WriteLine("Testing parser...");
+                try {
+                    var parser = new Parser.Parser(exampleModule1);
+                    var ast = parser.Ast();
+                    Console.WriteLine(ast);
+                } catch(Parser.ParserException pe) {
+                    Console.WriteLine(pe.Message);
+                }
+                Console.WriteLine("Done testing parser...");
             }
         }
     }
