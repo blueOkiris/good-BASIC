@@ -97,10 +97,10 @@ namespace GoodBasic {
                  */
                 
                 // Get all the imports
-                while(lexInd > lexemes.Length
+                while(lexInd < lexemes.Length
                         && (string) lexemes[lexInd].Source() == "imports") {
                     var import = parseImport();
-                    if(lexInd < lexemes.Length) {
+                    if(lexInd >= lexemes.Length) {
                         throw new UnexpectedEOFException(import.Line());
                     } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
                         throw new UnexpectedTokenException(
@@ -119,12 +119,12 @@ namespace GoodBasic {
                 // Get the exports and implements line
                 var export = parseExport();
                 children.Add(parseExport());
-                if(lexInd < lexemes.Length) {
+                if(lexInd >= lexemes.Length) {
                     throw new UnexpectedEOFException(export.Line());
                 } else if((string) lexemes[lexInd].Source() == "implements") {
                     children.Add(parseImplement()); // Optional, hence if stmt
                 }
-                if(lexInd < lexemes.Length) {
+                if(lexInd >= lexemes.Length) {
                     throw new UnexpectedEOFException(export.Line());
                 } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
                     throw new UnexpectedTokenException(
@@ -139,7 +139,7 @@ namespace GoodBasic {
                 // Finally, parse definitions
                 while(lexInd < lexemes.Length) {
                     var definition = parseDefinition();
-                    if(lexInd < lexemes.Length) {
+                    if(lexInd >= lexemes.Length) {
                         throw new UnexpectedEOFException(definition.Line());
                     } else if(lexemes[lexInd].Type() != TokenType.NewLine) {
                         throw new UnexpectedTokenException(
